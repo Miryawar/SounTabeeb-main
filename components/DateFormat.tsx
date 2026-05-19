@@ -49,7 +49,7 @@ const[isSelectedIndex,setIsSelectedIndex]=useState(0);
 
     times.push(
       time.toLocaleTimeString(
-        "en-US",
+        "en-IN",
         {
           hour: "2-digit",
           minute: "2-digit",
@@ -89,7 +89,7 @@ const[isSelectedIndex,setIsSelectedIndex]=useState(0);
 
                         <View>
                               <Text className={`text-sm font-semibold ${isSelectedIndex===index?"text-white" : "text-gray-500"}`}>
-                            {items.toLocaleDateString("en-US",{
+                            {items.toLocaleDateString("en-IN",{
                             weekday:"short"
                             })}
                         </Text>
@@ -98,7 +98,7 @@ const[isSelectedIndex,setIsSelectedIndex]=useState(0);
                         <View>
                            
                             <Text className={`  text-xl font-bold mt-2 ${  isSelectedIndex===index? "text-white": "text-gray-800"}`}>
-                                            {items.toLocaleDateString("en-US",{
+                                            {items.toLocaleDateString("en-IN",{
                                              day:"numeric"
                                                })}
                                 </Text>
@@ -133,7 +133,7 @@ const[isSelectedIndex,setIsSelectedIndex]=useState(0);
                           {dates[
                              isSelectedIndex
                              ].toLocaleDateString(
-                             "en-US",
+                             "en-IN",
                                  {
                                  day: "numeric",
                                 month: "long",

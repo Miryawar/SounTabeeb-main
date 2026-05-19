@@ -10,8 +10,8 @@ export const TopDoctors = () => {
       <Text className=" text-gray-600 text-center text-lg py-5">Simply browse through our extensive list of trusted doctors.</Text>
       <View >
         {doctors.slice(1,6).map((item, index) => (
-            <Pressable key={index} onPress={() =>
-              router.push(`/appointment/${item._id}`)}
+            <Pressable key={index} 
+            onPress={() => router.push(`/appointment/${item._id}`)}
                className="border border-blue-200 rounded-lg mb-4 overflow-hidden bg-white">
           <Image  source={item.image}  className="w-full h-30 bg-blue-50" />
 

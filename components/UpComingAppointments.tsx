@@ -1,4 +1,4 @@
-import {View,Text,Image, TouchableOpacity, ScrollView} from "react-native";
+import {View,Text,Image, TouchableOpacity} from "react-native";
 import { doctors } from "@/assets/assets";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -57,7 +57,7 @@ export default function UpComingAppointments()
                         </View>
                              
                           <View className="flex-grow flex-row items-center justify-center gap-3 mt-4">   
-                         <TouchableOpacity  onPress={()=>setSelectedActions({
+                         <TouchableOpacity onPress={()=>setSelectedActions({
                                                               ...selectedActions,
                                                              [item.id]: "reschedule",
                                                           })}

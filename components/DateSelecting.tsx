@@ -16,14 +16,14 @@ export default function DateSelecting() {
 
   // Generate next 30  days
   const dates = Array.from({ length: 30 }, (_, index) => {
-
+   // generates cyrrent date
     const date = new Date();
 
     date.setDate(date.getDate() + index);
 
     return {
       day: date
-        .toLocaleDateString("en-US", {
+        .toLocaleDateString("en-IN", {
           weekday: "short",
         }).toUpperCase(),
 
@@ -46,7 +46,7 @@ export default function DateSelecting() {
 
     while (start <= end) {
       slots.push(new Date(start));
-      start.setMinutes(start.getMinutes() + 30);
+      start.setMinutes(start.getMinutes() + 10);
     }
 
     return slots;
@@ -107,7 +107,7 @@ const scrollRight = () => {
 
         <Text className="text-2xl font-bold text-gray-800">
           
-                  {new Date(dates[selectedIndex].fullDate).toLocaleDateString("en-US", {
+                  {new Date(dates[selectedIndex].fullDate).toLocaleDateString("en-IN", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
@@ -118,11 +118,11 @@ const scrollRight = () => {
           onPress={scrollRight}
           className="bg-gray-100 p-3 rounded-full"
         >
-          <Ionicons
+          {/* <Ionicons
             name="chevron-forward"
             size={24}
             color="black"
-          />
+          /> */}
         </TouchableOpacity>
 
       </View>
