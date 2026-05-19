@@ -8,7 +8,6 @@ export default function DateFormat()
     const date=new Date();
     const options: Intl.DateTimeFormatOptions  = {
    weekday: "short",
-// weekday:"long"
   year: "numeric",
   month: "long",
   day: "numeric",
@@ -16,9 +15,9 @@ export default function DateFormat()
 const formattedDate = date.toLocaleDateString(
   "en-US",options).toUpperCase();
 
-// dates for next 15 days
+// dates for next 30 days
 const dates=[];
-for(let i=0;i<15;i++)
+for(let i=0;i<30;i++)
 {
     const date=new Date();
     date.setDate(date.getDate()+i);
@@ -38,13 +37,14 @@ const[isSelectedIndex,setIsSelectedIndex]=useState(0);
 
   startTime.setHours(9);
   startTime.setMinutes(0);
-
-  for (let i = 0; i <17; i++) {
+  
+  // time intervals for each user
+  for (let i = 0; i <20; i++) {
 
     const time = new Date(startTime);
 
     time.setMinutes(
-      startTime.getMinutes() + i * 30
+      startTime.getMinutes() + i * 10
     );
 
     times.push(

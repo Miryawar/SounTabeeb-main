@@ -15,7 +15,8 @@ export const validateEmail = (email: string) => {
 
 // PASSWORD VALIDATION
 export const validatePassword = (password: string) => {
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+  ;
 
   if (!password) {
     return { valid: false, message: "Password is required" };
@@ -31,7 +32,7 @@ export const validatePassword = (password: string) => {
   if (!passwordRegex.test(password)) {
     return {
       valid: false,
-      message: "Password must contain letters and numbers",
+      message: "Password must contain letters one upper case, numbers and symbols ",
     };
   }
 

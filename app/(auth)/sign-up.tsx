@@ -50,7 +50,7 @@ export default function SignUp() {
     // backend call here
     // API CALL
     try {
-      const res = await fetch("http://10.113.71.177:5000/api/auth/register", {
+      const res = await fetch("http://192.168.44.66.8081/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

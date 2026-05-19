@@ -5,7 +5,7 @@ import {assets} from "@/assets/assets";
 
 export default function Footer() {
   const router=useRouter();
-  const phoneNumber = "917889463982";
+  const phoneNumber = "916005647721";
   const message = "Hello, I want to book an appointment";
   const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
   return (
@@ -30,7 +30,7 @@ export default function Footer() {
         
         <TouchableOpacity onPress={() => Linking.openURL(`tel:${phoneNumber}`)}>
             <View className=" flex-row gap-3">
-          <Text className="text-gray-600 text-lg">Call : 7889463982</Text>
+          <Text className="text-gray-600 text-lg">Call : 6005647721</Text>
           {/* <Ionicons name="call" size={20} color="blue" /> */}
           </View>
         </TouchableOpacity>
