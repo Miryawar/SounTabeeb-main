@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const connectDB = async (uri) => {
-  const localFallback = process.env.MONGO_FALLBACK_URI;
+  const localFallback = process.env.MONGO_URI;
 
   try {
     await mongoose.connect(uri, {
@@ -48,3 +48,9 @@ const connectDB = async (uri) => {
 };
 
 module.exports = connectDB;
+
+// mongoose.connect(
+//   "mongodb+srv://miryawar:Raway01@cluster0.xbiys1k.mongodb.net/?retryWrites=true&w=majority"
+// )
+// .then(() => console.log("MongoDB Connected"))
+// .catch((err) => console.log(err));
