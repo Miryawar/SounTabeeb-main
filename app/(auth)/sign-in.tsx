@@ -1,4 +1,5 @@
 import { assets } from "@/assets/assets";
+import { useUser } from "@/context/UserContext";
 import { validateEmail, validatePassword } from "@/utils/validation";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -17,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SignIn() {
   const router = useRouter();
+  const { login } = useUser();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -33,32 +35,10 @@ export default function SignIn() {
       return Alert.alert(passwordCheck.message);
     }
 
-    // API CALL
-    try {
-      const res = await fetch("http://192.168.44.66.8081/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        return Alert.alert(data.message);
-      }
-
-      Alert.alert("Success", "Login successful");
-
-      // go to home
-      router.replace("/home");
-    } catch (error) {
-      Alert.alert("Server error");
-    }
+    const { ok, message } = await login(email, password);
+    if (!ok) return Alert.alert(message || "Login failed");
+    Alert.alert("Success", "Login successful");
+    router.replace("/home");
   };
   return (
     <SafeAreaView className="flex-1">

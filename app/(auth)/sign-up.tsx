@@ -4,26 +4,28 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useUser } from "@/context/UserContext";
 import {
-  validateEmail,
-  validateName,
-  validatePassword,
-  validatePhone,
+    validateEmail,
+    validateName,
+    validatePassword,
+    validatePhone,
 } from "@/utils/signupValidation";
 
 export default function SignUp() {
   const router = useRouter();
+  const { register } = useUser();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -47,35 +49,11 @@ export default function SignUp() {
       return alert("Passwords do not match");
     }
 
-    // backend call here
-    // API CALL
-    try {
-      const res = await fetch("http://192.168.44.66.8081/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          password,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        return Alert.alert(data.message || "Signup failed");
-      }
-
-      Alert.alert("Success", "Account created");
-
-      router.replace("/sign-in");
-    } catch (error) {
-      console.log(error);
-      Alert.alert("Server error");
-    }
+    // call register from context
+    const { ok, message } = await register(name, email, password, { phone });
+    if (!ok) return Alert.alert(message || "Signup failed");
+    Alert.alert("Success", "Account created");
+    router.replace("/sign-in");
   };
 
   return (
