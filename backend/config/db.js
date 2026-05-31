@@ -16,15 +16,6 @@ const connectDB = async (uri) => {
       err.code === "ECONNREFUSED" ||
       (err.message && err.message.includes("querySrv"));
 
-    if (uri.startsWith("mongodb+srv://") && isSrvError) {
-      console.error("MongoDB Atlas SRV/DNS lookup failed:", err.message);
-      console.error(
-        "Your environment appears to block DNS SRV/A resolution for Atlas hostnames.",
-      );
-      console.error(
-        "Use a standard Atlas connection string or enable a local Mongo fallback.",
-      );
-
       if (localFallback) {
         console.warn(
           "Attempting local MongoDB fallback using MONGO_FALLBACK_URI.",
@@ -40,17 +31,30 @@ const connectDB = async (uri) => {
           console.error("Local fallback connection error:", localErr.message);
         }
       }
-    }
+    
 
     console.error("MongoDB connection error", err.message);
     process.exit(1);
-  }
-};
+}};
+
 
 module.exports = connectDB;
 
-// mongoose.connect(
-//   "mongodb+srv://miryawar:Raway01@cluster0.xbiys1k.mongodb.net/?retryWrites=true&w=majority"
-// )
-// .then(() => console.log("MongoDB Connected"))
-// .catch((err) => console.log(err));
+// const mongoose = require("mongoose");
+
+// const connectDB = async () => {
+//   console.log(process.env.MONGO_URI);
+//   try {
+//     await mongoose.connect(process.env.MONGO_URI);
+
+//     console.log("MongoDB Connected");
+//   } catch (error) {
+//     console.error("Name:", error.name);
+//     console.error("Message:", error.message);
+//     console.error("Code:", error.code);
+//     console.error(error);
+//     process.exit(1);
+//   }
+// };
+
+// module.exports = connectDB;

@@ -1,7 +1,12 @@
+const dns = require("dns");
+
+dns.setDefaultResultOrder("ipv4first");
+
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
+const user = require("./models/User");
 
 const app = express();
 app.use(cors());
@@ -28,10 +33,21 @@ const startServer = async () => {
     res.status(500).json({ message: "Server error" });
   });
 
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  app.listen(PORT, "0.0.0.0", () =>
+    console.log(`Server running on port ${PORT}`),
+  );
 };
 
 startServer().catch((err) => {
   console.error("Server failed to start:", err.message || err);
   process.exit(1);
 });
+// async function insert(){
+//   await User.create({
+//     name : 'yawar mir',
+//     email : 'miryawer01@gmail.com',
+//     phonenumber : 1234567891,
+//     password : 'yawar@123',
+//   })
+// }
+// insert();

@@ -113,6 +113,7 @@ export const UserProvider = ({ children }: any) => {
       if (profileRes.ok) setUser(await profileRes.json());
       return { ok: true };
     } catch (err: any) {
+      console.log("REGISTER ERROR:", err);
       return { ok: false, message: err.message };
     }
   };
