@@ -52,7 +52,7 @@ export default function SignUp() {
     // call register from context
     const { ok, message } = await register(name, email, password, { phone });
     if (!ok) return Alert.alert(message || "Signup failed");
-    Alert.alert("Success", "Account created");
+    Alert.alert("Account created", "successfully");
     router.replace("/sign-in");
   };
 
