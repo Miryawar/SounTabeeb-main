@@ -38,9 +38,4 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// router.post("/create", async (req, res) => {
-//   const user = await user.create(req.body);
-//   res.json(user);
-// });
-
 module.exports = router;
