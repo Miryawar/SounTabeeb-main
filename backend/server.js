@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   await connectDB(
-    process.env.MONGO_URI || "mongodb://127.0.0.1:27017/sountabeeb",
+    process.env.MONGO_URI || "mongodb://10.162.73.117:5000/sountabeeb",
   );
 
   // Routes

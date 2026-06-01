@@ -9,3 +9,5 @@ router.get("/me", auth, getProfile);
 
 const { updateProfile } = require("../controllers/userController");
 router.put("/me", auth, updateProfile);
+
+module.exports = router;
