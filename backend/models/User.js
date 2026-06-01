@@ -5,21 +5,7 @@ const userSchema = new mongoose.Schema({
 
   email: { type: String, required: true, unique: true },
 
-  phone: { type: Number },
-
-  dob: { type: String },
-
-  gender: { type: String },
-
-  address: { type: String },
-
-  city: { type: String },
-
-  district: { type: String },
-
-  state: { type: String },
-
-  pincode: { type: String },
+  phone: { type: Number, required: true },
 
   password: { type: String, required: true },
 

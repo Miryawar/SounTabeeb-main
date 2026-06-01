@@ -1,10 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authMiddleware");
-const { getProfile, updateProfile } = require("../controllers/userController");
+const { getProfile } = require("../controllers/userController");
 const User = require("../models/User");
 router.get("/me", auth, getProfile);
-router.put("/me", auth, updateProfile);
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;

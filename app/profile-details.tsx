@@ -98,7 +98,7 @@ export default function ProfileDetails() {
 
           <View className="items-center mb-6">
             <Image
-              source={profileImage ? { uri: profileImage } : assets.profilepic}
+              source={profileImage ? { uri: profileImage } : assets.profile_pic}
               className="w-40 h-40 rounded-full"
             />
             <Text className="text-2xl font-bold text-gray-800 mt-4">

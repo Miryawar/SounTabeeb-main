@@ -145,12 +145,12 @@ export const UserProvider = ({ children }: any) => {
   const register = async (
     name: string,
     email: string,
-    password: string,
     phone: string,
+    password: string,
     extras: any = {},
   ) => {
     try {
-      const body = { name, email, password, ...extras };
+      const body = { name, email, password, phone, ...extras };
       const res = await apiPost("/api/auth/register", body);
       const data = await parseResponse(res);
       if (!res.ok) throw new Error(data.message || "Register failed");
