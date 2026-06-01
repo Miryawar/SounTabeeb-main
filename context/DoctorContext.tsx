@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from "@/utils/api";
+import { apiGet, apiPost, apiPut } from "@/utils/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -95,6 +95,21 @@ export const DoctorProvider = ({ children }: any) => {
     setDoctor(null);
   };
 
+  const updateDoctorProfile = async (updates: any) => {
+    try {
+      const res = await apiPut("/api/doctors/me", updates, "doctorToken");
+      const data = await parseResponse(res);
+      if (!res.ok) {
+        return { ok: false, message: data.message || "Update failed" };
+      }
+      await AsyncStorage.setItem("doctorProfile", JSON.stringify(data));
+      setDoctor(data);
+      return { ok: true, data };
+    } catch (err: any) {
+      return { ok: false, message: err.message || "Update failed" };
+    }
+  };
+
   const register = async (
     name: string,
     email: string,
@@ -108,6 +123,7 @@ export const DoctorProvider = ({ children }: any) => {
         password,
         phone: doctorDetails.phone || "",
         profilePicture: doctorDetails.profilePicture || "",
+        bio: doctorDetails.bio || "",
         speciality: doctorDetails.speciality || "",
         qualification: doctorDetails.qualification || "",
         experience: doctorDetails.experience || "",
@@ -140,7 +156,15 @@ export const DoctorProvider = ({ children }: any) => {
 
   return (
     <DoctorContext.Provider
-      value={{ doctor, token, loading, login, logout, register }}
+      value={{
+        doctor,
+        token,
+        loading,
+        login,
+        logout,
+        register,
+        updateDoctorProfile,
+      }}
     >
       {children}
     </DoctorContext.Provider>

@@ -24,81 +24,125 @@ export default function DoctorDashboard() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <View className="flex-row items-center justify-between mb-6">
-          <View>
-            <Text className="text-3xl font-bold text-gray-900">Welcome</Text>
-            <Text className="text-3xl font-bold text-blue-600">
-              {doctor.name}
+    <SafeAreaView className="flex-1 bg-slate-100">
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+        <View className="relative rounded-[34px] bg-gradient-to-r from-sky-600 via-cyan-600 to-blue-500 p-6 mb-6 overflow-hidden shadow-2xl">
+          <View className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
+          <View className="absolute -bottom-8 left-4 h-24 w-24 rounded-full bg-white/10" />
+
+          <View className="flex-row items-center justify-between">
+            <View className="flex-1 pr-4">
+              <Text className="text-base font-semibold text-sky-100 uppercase tracking-[0.24em]">
+                Doctor Dashboard
+              </Text>
+              <Text className="mt-3 text-3xl font-bold text-white">
+                Welcome back, {doctor.name}
+              </Text>
+              <Text className="mt-3 text-sm leading-6 text-sky-100/90">
+                {doctor.bio ||
+                  "Write a short introduction so patients can get to know you."}
+              </Text>
+            </View>
+            <View className="h-24 w-24 rounded-3xl border border-white/20 overflow-hidden bg-slate-200">
+              <Image
+                source={
+                  doctor.profilePicture
+                    ? { uri: doctor.profilePicture }
+                    : assets.doctor_icon || assets.profile_pic
+                }
+                style={{ width: 96, height: 96, borderRadius: 22 }}
+              />
+            </View>
+          </View>
+
+          <View className="mt-6 rounded-[28px] bg-white/10 p-4">
+            <Text className="text-sm font-semibold text-slate-100">
+              Next appointment
+            </Text>
+            <Text className="mt-2 text-lg font-semibold text-white">
+              {doctor.upcomingAppointments ?? 0} upcoming sessions
+            </Text>
+            <Text className="mt-1 text-sm text-sky-100/80">
+              Keep your profile updated so patients can book with confidence.
             </Text>
           </View>
-          <Image
-            source={assets.doctor_icon || assets.profile_pic}
-            style={{ width: 80, height: 80, borderRadius: 20 }}
-          />
         </View>
 
-        <View className="rounded-3xl bg-blue-50 p-5 mb-6">
-          <Text className="text-lg font-semibold text-gray-700">
-            Clinic Overview
-          </Text>
-          <View className="flex-row justify-between mt-4">
-            <View className="rounded-3xl bg-white p-4 w-1/3 shadow-sm">
-              <Text className="text-2xl font-bold text-blue-600">
+        <View className="mb-6 space-y-4">
+          <View className="flex-row items-center justify-between rounded-3xl bg-white p-4 shadow-md">
+            <View>
+              <Text className="text-sm uppercase tracking-[0.2em] text-slate-400">
+                Appointments
+              </Text>
+              <Text className="mt-2 text-3xl font-bold text-slate-900">
                 {doctor.upcomingAppointments ?? 0}
               </Text>
-              <Text className="text-sm text-gray-500 mt-2">Appointments</Text>
             </View>
-            <View className="rounded-3xl bg-white p-4 w-1/3 shadow-sm">
-              <Text className="text-2xl font-bold text-blue-600">
+            <View className="rounded-3xl bg-sky-600 px-4 py-3">
+              <Text className="text-base font-semibold text-white">Live</Text>
+            </View>
+          </View>
+
+          <View className="flex-row gap-4">
+            <View className="flex-1 rounded-3xl bg-white p-4 shadow-md">
+              <Text className="text-sm text-slate-500">Patients</Text>
+              <Text className="mt-3 text-2xl font-bold text-slate-900">
                 {doctor.patients ?? 0}
               </Text>
-              <Text className="text-sm text-gray-500 mt-2">Patients</Text>
-            </View>
-            <View className="rounded-3xl bg-white p-4 w-1/3 shadow-sm">
-              <Text className="text-2xl font-bold text-blue-600">
-                {doctor.rating ?? 0}
+              <Text className="mt-2 text-sm text-slate-500">
+                Active this month
               </Text>
-              <Text className="text-sm text-gray-500 mt-2">Rating</Text>
+            </View>
+            <View className="flex-1 rounded-3xl bg-white p-4 shadow-md">
+              <Text className="text-sm text-slate-500">Rating</Text>
+              <Text className="mt-3 text-2xl font-bold text-slate-900">
+                {doctor.rating ?? 0}.0
+              </Text>
+              <Text className="mt-2 text-sm text-slate-500">
+                Patient satisfaction
+              </Text>
             </View>
           </View>
         </View>
 
-        <View className="space-y-4">
+        <View className="space-y-3">
+          <Text className="text-base font-semibold text-slate-900">
+            Quick actions
+          </Text>
+
           <TouchableOpacity
             onPress={() => router.push("/doctor/appointments")}
-            className="rounded-3xl bg-blue-600 p-5"
+            className="rounded-3xl bg-white p-5 shadow-md"
           >
-            <Text className="text-white text-xl font-semibold">
-              My Appointments
+            <Text className="text-lg font-semibold text-slate-900">
+              Manage appointments
             </Text>
-            <Text className="text-blue-100 mt-2">
-              View schedule, upcoming bookings, and patient details.
+            <Text className="mt-2 text-sm text-slate-500">
+              Review bookings, confirm consultations, and see your day plan.
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => router.push("/doctor/patients")}
-            className="rounded-3xl bg-white border border-gray-200 p-5"
+            className="rounded-3xl bg-white p-5 shadow-md"
           >
-            <Text className="text-gray-900 text-xl font-semibold">
-              Patient List
+            <Text className="text-lg font-semibold text-slate-900">
+              Patient records
             </Text>
-            <Text className="text-gray-500 mt-2">
-              Review your active patients and health notes.
+            <Text className="mt-2 text-sm text-slate-500">
+              Access patient history, messages, and appointment notes.
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => router.push("/doctor/profile")}
-            className="rounded-3xl bg-white border border-gray-200 p-5"
+            className="rounded-3xl bg-slate-900 p-5 shadow-md"
           >
-            <Text className="text-gray-900 text-xl font-semibold">
-              Profile Settings
+            <Text className="text-lg font-semibold text-white">
+              Update profile
             </Text>
-            <Text className="text-gray-500 mt-2">
-              Update your doctor profile and clinic information.
+            <Text className="mt-2 text-sm text-slate-300">
+              Edit your bio, picture, speciality and clinic information.
             </Text>
           </TouchableOpacity>
         </View>

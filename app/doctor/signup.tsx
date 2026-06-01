@@ -31,7 +31,6 @@ export default function DoctorSignUp() {
     phone: "",
     password: "",
     confirmPassword: "",
-    profilePicture: "",
     speciality: "",
     qualification: "",
     experience: "",
@@ -79,7 +78,6 @@ export default function DoctorSignUp() {
       formData.password,
       {
         phone: formData.phone,
-        profilePicture: formData.profilePicture,
         speciality: formData.speciality,
         qualification: formData.qualification,
         experience: formData.experience,
@@ -163,23 +161,6 @@ export default function DoctorSignUp() {
                   maxLength={10}
                   className="border border-gray-300 rounded-2xl px-4 py-3"
                 />
-              </View>
-
-              {/* Profile Picture URL */}
-              <View>
-                <Text className="text-gray-700 font-semibold mb-2">
-                  Profile Picture URL
-                </Text>
-                <TextInput
-                  value={formData.profilePicture}
-                  onChangeText={(val) => handleChange("profilePicture", val)}
-                  placeholder="https://example.com/photo.jpg"
-                  autoCapitalize="none"
-                  className="border border-gray-300 rounded-2xl px-4 py-3"
-                />
-                <Text className="text-xs text-gray-500 mt-1">
-                  Optional: add a profile image URL visible to patients.
-                </Text>
               </View>
 
               {/* Speciality */}

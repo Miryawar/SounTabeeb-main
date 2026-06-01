@@ -19,10 +19,12 @@ exports.getProfile = async (req, res) => {
       pincode: user.pincode || "",
       gender: user.gender || "",
       role: user.role || "user",
+      profilePicture: doctorProfile?.profilePicture || "",
       speciality: doctorProfile?.speciality || "",
       qualification: doctorProfile?.qualification || "",
       experience: doctorProfile?.experience || "",
       licenseNumber: doctorProfile?.licenseNumber || "",
+      bio: doctorProfile?.bio || "",
     };
 
     res.json(profile);

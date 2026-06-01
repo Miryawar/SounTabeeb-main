@@ -12,6 +12,7 @@ exports.register = async (req, res) => {
     phone,
     role,
     profilePicture,
+    bio,
     speciality,
     qualification,
     experience,
@@ -41,6 +42,7 @@ exports.register = async (req, res) => {
         name,
         email,
         profilePicture: profilePicture || "",
+        bio: bio || "",
         speciality: speciality || "",
         qualification: qualification || "",
         experience: experience || "",
@@ -73,6 +75,7 @@ exports.register = async (req, res) => {
 
     if (doctorProfile) {
       responseUser.profilePicture = doctorProfile.profilePicture || "";
+      responseUser.bio = doctorProfile.bio || "";
       responseUser.speciality = doctorProfile.speciality || "";
       responseUser.qualification = doctorProfile.qualification || "";
       responseUser.experience = doctorProfile.experience || "";
@@ -124,6 +127,7 @@ exports.login = async (req, res) => {
         gender: user.gender || "",
         role: user.role || "user",
         profilePicture: doctorProfile?.profilePicture || "",
+        bio: doctorProfile?.bio || "",
         speciality: doctorProfile?.speciality || "",
         qualification: doctorProfile?.qualification || "",
         experience: doctorProfile?.experience || "",

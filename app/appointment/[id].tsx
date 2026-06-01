@@ -63,7 +63,9 @@ const DoctorDetail = () => {
           <Text className="font-semibold flex-row items-center my-3 text-gray-800 font-bold text-lg">
             About <Text>ℹ️</Text>
           </Text>
-          <Text className="text-gray-600 mb-3 leading-6">{doctor.about}</Text>
+          <Text className="text-gray-600 mb-3 leading-6">
+            {doctor.bio || doctor.about || "No additional details available."}
+          </Text>
           <Text className="text-gray-800 text-xl font-bold">
             Appointment fee: Rs {doctor.fees}
           </Text>
