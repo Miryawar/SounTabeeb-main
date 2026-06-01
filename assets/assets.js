@@ -25,7 +25,6 @@ export const assets = {
   dropdownchat_icon:require("./images/dropdownchaticon.png"),
   dropdownlogout_icon:require("./images/dropdownlogouticon.png"),
   frontimage:require("./images/frontpage.jpg"),
-  profilepic:require("./images/profilepic.jpeg")
 
 };
 

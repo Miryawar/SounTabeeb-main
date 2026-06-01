@@ -12,7 +12,7 @@ export default function Header()
     <View>
       <View className="flex flex-row items-center ">
         <DropdownMenu></DropdownMenu>
-        <Ionicons name="notifications-outline" size={28} color="black"></Ionicons>
+        <Ionicons name="notifications-outline" size={25} color="black"></Ionicons>
       </View>
       <SearchBar></SearchBar>
 

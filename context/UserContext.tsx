@@ -1,7 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useState } from "react";
-import { apiGet, apiPost } from "../utils/api";
-
+import { apiGet, apiPost, apiPut } from "../utils/api";
 const UserContext = createContext<any>(null);
 
 export const UserProvider = ({ children }: any) => {
@@ -33,6 +32,19 @@ export const UserProvider = ({ children }: any) => {
     }
   };
 
+  const parseResponse = async (res: Response) => {
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      try {
+        return await res.json();
+      } catch (err) {
+        return { message: "Invalid JSON response" };
+      }
+    }
+    const text = await res.text();
+    return { message: text || "Empty response" };
+  };
+
   const loadAuth = async () => {
     const t = await AsyncStorage.getItem("token");
     const savedName = await AsyncStorage.getItem("userName");
@@ -40,13 +52,18 @@ export const UserProvider = ({ children }: any) => {
       setToken(t);
       try {
         const res = await apiGet("/api/users/me");
+        const data = await parseResponse(res);
         if (res.ok) {
-          const data = await res.json();
           setUser(data);
           if (!savedName && data.name) {
             setUserName(data.name);
             await AsyncStorage.setItem("userName", data.name);
           }
+        } else {
+          console.warn(
+            "Failed to fetch profile",
+            data.message || "Unknown error",
+          );
         }
       } catch (err) {
         console.warn("Failed to fetch profile", err);
@@ -68,10 +85,44 @@ export const UserProvider = ({ children }: any) => {
     await AsyncStorage.setItem("userName", name);
   };
 
+  const updateUserProfile = async (profileData: any) => {
+    try {
+      console.log("UPDATE USER PROFILE - Sending data:", profileData);
+
+      const res = await apiPut("/api/users/me", profileData);
+
+      console.log(
+        "UPDATE USER PROFILE - Response status:",
+        res.status,
+        "Content-Type:",
+        res.headers.get("content-type"),
+      );
+
+      const data = await parseResponse(res);
+
+      console.log("UPDATE USER PROFILE - Parsed response:", data);
+
+      if (!res.ok) throw new Error(data.message || "Profile update failed");
+
+      setUser(data);
+      if (data.name) {
+        setUserName(data.name);
+        await AsyncStorage.setItem("userName", data.name);
+      }
+
+      console.log("UPDATE USER PROFILE - Success, user state updated");
+
+      return { ok: true, user: data };
+    } catch (err: any) {
+      console.log("UPDATE USER PROFILE - Error:", err.message);
+      return { ok: false, message: err.message };
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
       const res = await apiPost("/api/auth/login", { email, password });
-      const data = await res.json();
+      const data = await parseResponse(res);
       if (!res.ok) throw new Error(data.message || "Login failed");
       await AsyncStorage.setItem("token", data.token);
       setToken(data.token);
@@ -81,8 +132,8 @@ export const UserProvider = ({ children }: any) => {
       }
       // fetch full profile
       const profileRes = await apiGet("/api/users/me");
+      const profile = await parseResponse(profileRes);
       if (profileRes.ok) {
-        const profile = await profileRes.json();
         setUser(profile);
       }
       return { ok: true };
@@ -95,12 +146,13 @@ export const UserProvider = ({ children }: any) => {
     name: string,
     email: string,
     password: string,
+    phone: string,
     extras: any = {},
   ) => {
     try {
       const body = { name, email, password, ...extras };
       const res = await apiPost("/api/auth/register", body);
-      const data = await res.json();
+      const data = await parseResponse(res);
       if (!res.ok) throw new Error(data.message || "Register failed");
       // optionally auto-login
       await AsyncStorage.setItem("token", data.token);
@@ -110,7 +162,8 @@ export const UserProvider = ({ children }: any) => {
         await AsyncStorage.setItem("userName", data.user.name);
       }
       const profileRes = await apiGet("/api/users/me");
-      if (profileRes.ok) setUser(await profileRes.json());
+      const profile = await parseResponse(profileRes);
+      if (profileRes.ok) setUser(profile);
       return { ok: true };
     } catch (err: any) {
       console.log("REGISTER ERROR:", err);
@@ -125,6 +178,7 @@ export const UserProvider = ({ children }: any) => {
     setUser(null);
     setUserName(null);
   };
+
   return (
     <UserContext.Provider
       value={{
@@ -137,6 +191,7 @@ export const UserProvider = ({ children }: any) => {
         loading,
         login,
         register,
+        updateUserProfile,
         logout,
       }}
     >

@@ -42,12 +42,3 @@ startServer().catch((err) => {
   console.error("Server failed to start:", err.message || err);
   process.exit(1);
 });
-// async function insert(){
-//   await User.create({
-//     name : 'yawar mir',
-//     email : 'miryawer01@gmail.com',
-//     phonenumber : 1234567891,
-//     password : 'yawar@123',
-//   })
-// }
-// insert();

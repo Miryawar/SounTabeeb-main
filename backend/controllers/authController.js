@@ -18,11 +18,23 @@ exports.register = async (req, res) => {
     });
     res.json({
       token,
-      user: { id: user._id, name: user.name, email: user.email },
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone || "",
+        dob: user.dob || "",
+        address: user.address || "",
+        city: user.city || "",
+        state: user.state || "",
+        district: user.district || "",
+        pincode: user.pincode || "",
+        gender: user.gender || "",
+      },
     });
-  }catch (err) {
+  } catch (err) {
     console.error("REGISTER ERROR:", err);
-  
+
     res.status(500).json({
       message: err.message,
       // stack: err.stack
@@ -44,10 +56,22 @@ exports.login = async (req, res) => {
     });
     res.json({
       token,
-      user: { id: user._id, name: user.name, email: user.email },
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone || "",
+        dob: user.dob || "",
+        address: user.address || "",
+        city: user.city || "",
+        state: user.state || "",
+        district: user.district || "",
+        pincode: user.pincode || "",
+        gender: user.gender || "",
+      },
     });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).json({ message: "Server error" });
   }
 };
