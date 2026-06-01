@@ -1,10 +1,14 @@
+import { DoctorProvider } from "@/context/DoctorContext";
+import { UserProvider } from "@/context/UserContext";
 import { Stack } from "expo-router";
-import '../global.css';
-import {UserProvider} from "@/context/UserContext";
+import "../global.css";
+
 export default function RootLayout() {
-  return(
+  return (
     <UserProvider>
-     <Stack  screenOptions={{headerShown:false}}/>;
-     </UserProvider>
-  )
+      <DoctorProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+      </DoctorProvider>
+    </UserProvider>
+  );
 }

@@ -3,12 +3,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // Edit this base URL to match your backend host/IP and port.
 export const API_BASE = "http://10.162.73.117:5000";
 
-async function getToken() {
-  return await AsyncStorage.getItem("token");
+async function getToken(key = "token") {
+  return await AsyncStorage.getItem(key);
 }
 
-export async function apiGet(path: string) {
-  const token = await getToken();
+export async function apiGet(path: string, tokenKey = "token") {
+  const token = await getToken(tokenKey);
   const res = await fetch(`${API_BASE}${path}`, {
     headers: {
       "Content-Type": "application/json",
@@ -18,8 +18,8 @@ export async function apiGet(path: string) {
   return res;
 }
 
-export async function apiPost(path: string, body: any) {
-  const token = await getToken();
+export async function apiPost(path: string, body: any, tokenKey = "token") {
+  const token = await getToken(tokenKey);
 
   console.log("POST URL:", `${API_BASE}${path}`);
   console.log("POST BODY:", body);
@@ -35,8 +35,8 @@ export async function apiPost(path: string, body: any) {
   return res;
 }
 
-export async function apiPut(path: string, body: any) {
-  const token = await getToken();
+export async function apiPut(path: string, body: any, tokenKey = "token") {
+  const token = await getToken(tokenKey);
   const res = await fetch(`${API_BASE}${path}`, {
     method: "PUT",
     headers: {

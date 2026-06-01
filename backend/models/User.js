@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
   gender: String,
 
   role: { type: String, enum: ["user", "doctor", "admin"], default: "user" },
+  doctor: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor" },
 
   createdAt: { type: Date, default: Date.now },
 });

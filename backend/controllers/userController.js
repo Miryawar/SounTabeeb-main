@@ -1,7 +1,14 @@
+const Doctor = require("../models/Doctor");
+
 exports.getProfile = async (req, res) => {
   try {
     const user = req.user.toObject();
-    res.json({
+    let doctorProfile = null;
+    if (user.role === "doctor") {
+      doctorProfile = await Doctor.findOne({ user: user._id }).lean();
+    }
+
+    const profile = {
       ...user,
       phone: user.phone || "",
       dob: user.dob || "",
@@ -11,7 +18,14 @@ exports.getProfile = async (req, res) => {
       district: user.district || "",
       pincode: user.pincode || "",
       gender: user.gender || "",
-    });
+      role: user.role || "user",
+      speciality: doctorProfile?.speciality || "",
+      qualification: doctorProfile?.qualification || "",
+      experience: doctorProfile?.experience || "",
+      licenseNumber: doctorProfile?.licenseNumber || "",
+    };
+
+    res.json(profile);
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ message: "Server error" });
