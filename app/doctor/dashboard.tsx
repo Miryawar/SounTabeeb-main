@@ -1,5 +1,6 @@
 import { assets } from "@/assets/assets";
 import { useDoctor } from "@/context/DoctorContext";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -17,15 +18,22 @@ export default function DoctorDashboard() {
 
   if (loading || !doctor) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-white">
-        <Text className="text-gray-600">Loading doctor dashboard...</Text>
+      <SafeAreaView className="flex-1 justify-center items-center bg-slate-950">
+        <Text className="text-slate-100">Loading doctor dashboard...</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-100">
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+    <SafeAreaView className="flex-1 bg-slate-950">
+      <LinearGradient
+        colors={["#0f172a", "#0f1d44", "#102a43"]}
+        className="absolute inset-0"
+      />
+      <ScrollView
+        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        className="relative"
+      >
         <View className="relative rounded-[34px] bg-gradient-to-r from-sky-600 via-cyan-600 to-blue-500 p-6 mb-6 overflow-hidden shadow-2xl">
           <View className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
           <View className="absolute -bottom-8 left-4 h-24 w-24 rounded-full bg-white/10" />
@@ -55,7 +63,10 @@ export default function DoctorDashboard() {
             </View>
           </View>
 
-          <View className="mt-6 rounded-[28px] bg-white/10 p-4">
+          <LinearGradient
+            colors={["rgba(255,255,255,0.16)", "rgba(255,255,255,0.08)"]}
+            className="mt-6 rounded-[28px] p-4"
+          >
             <Text className="text-sm font-semibold text-slate-100">
               Next appointment
             </Text>
@@ -65,85 +76,121 @@ export default function DoctorDashboard() {
             <Text className="mt-1 text-sm text-sky-100/80">
               Keep your profile updated so patients can book with confidence.
             </Text>
-          </View>
+          </LinearGradient>
         </View>
 
         <View className="mb-6 space-y-4">
-          <View className="flex-row items-center justify-between rounded-3xl bg-white p-4 shadow-md">
+          <LinearGradient
+            colors={["#d946ef", "#f472b6", "#f59e0b"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            className="flex-row items-center justify-between rounded-3xl p-4 shadow-md"
+          >
             <View>
-              <Text className="text-sm uppercase tracking-[0.2em] text-slate-400">
+              <Text className="text-sm uppercase tracking-[0.2em] text-white/90">
                 Appointments
               </Text>
-              <Text className="mt-2 text-3xl font-bold text-slate-900">
+              <Text className="mt-2 text-3xl font-bold text-white">
                 {doctor.upcomingAppointments ?? 0}
               </Text>
             </View>
-            <View className="rounded-3xl bg-sky-600 px-4 py-3">
+            <View className="rounded-3xl bg-white/20 px-4 py-3">
               <Text className="text-base font-semibold text-white">Live</Text>
             </View>
-          </View>
+          </LinearGradient>
 
           <View className="flex-row gap-4">
-            <View className="flex-1 rounded-3xl bg-white p-4 shadow-md">
-              <Text className="text-sm text-slate-500">Patients</Text>
-              <Text className="mt-3 text-2xl font-bold text-slate-900">
+            <LinearGradient
+              colors={["#10b981", "#06b6d4"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="flex-1 rounded-3xl p-4 shadow-md"
+            >
+              <Text className="text-sm text-white/90">Patients</Text>
+              <Text className="mt-3 text-2xl font-bold text-white">
                 {doctor.patients ?? 0}
               </Text>
-              <Text className="mt-2 text-sm text-slate-500">
+              <Text className="mt-2 text-sm text-white/80">
                 Active this month
               </Text>
-            </View>
-            <View className="flex-1 rounded-3xl bg-white p-4 shadow-md">
-              <Text className="text-sm text-slate-500">Rating</Text>
-              <Text className="mt-3 text-2xl font-bold text-slate-900">
+            </LinearGradient>
+            <LinearGradient
+              colors={["#6366f1", "#8b5cf6"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="flex-1 rounded-3xl p-4 shadow-md"
+            >
+              <Text className="text-sm text-white/90">Rating</Text>
+              <Text className="mt-3 text-2xl font-bold text-white">
                 {doctor.rating ?? 0}.0
               </Text>
-              <Text className="mt-2 text-sm text-slate-500">
+              <Text className="mt-2 text-sm text-white/80">
                 Patient satisfaction
               </Text>
-            </View>
+            </LinearGradient>
           </View>
         </View>
 
         <View className="space-y-3">
-          <Text className="text-base font-semibold text-slate-900">
+          <Text className="text-base font-semibold text-white">
             Quick actions
           </Text>
 
           <TouchableOpacity
             onPress={() => router.push("/doctor/appointments")}
-            className="rounded-3xl bg-white p-5 shadow-md"
+            className="rounded-3xl overflow-hidden shadow-md"
           >
-            <Text className="text-lg font-semibold text-slate-900">
-              Manage appointments
-            </Text>
-            <Text className="mt-2 text-sm text-slate-500">
-              Review bookings, confirm consultations, and see your day plan.
-            </Text>
+            <LinearGradient
+              colors={["#0284c7", "#0c4a6e"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="p-5"
+            >
+              <Text className="text-lg font-semibold text-white">
+                Manage appointments
+              </Text>
+              <Text className="mt-2 text-sm text-slate-100">
+                Review bookings, confirm consultations, and see your day plan.
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => router.push("/doctor/patients")}
-            className="rounded-3xl bg-white p-5 shadow-md"
+            className="rounded-3xl overflow-hidden shadow-md"
           >
-            <Text className="text-lg font-semibold text-slate-900">
-              Patient records
-            </Text>
-            <Text className="mt-2 text-sm text-slate-500">
-              Access patient history, messages, and appointment notes.
-            </Text>
+            <LinearGradient
+              colors={["#c2410c", "#9a3412"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="p-5"
+            >
+              <Text className="text-lg font-semibold text-white">
+                Patient records
+              </Text>
+              <Text className="mt-2 text-sm text-slate-100">
+                Access patient history, messages, and appointment notes.
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => router.push("/doctor/profile")}
-            className="rounded-3xl bg-slate-900 p-5 shadow-md"
+            className="rounded-3xl overflow-hidden shadow-md"
           >
-            <Text className="text-lg font-semibold text-white">
-              Update profile
-            </Text>
-            <Text className="mt-2 text-sm text-slate-300">
-              Edit your bio, picture, speciality and clinic information.
-            </Text>
+            <LinearGradient
+              colors={["#6d28d9", "#be185d"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="p-5"
+            >
+              <Text className="text-lg font-semibold text-white">
+                Update profile
+              </Text>
+              <Text className="mt-2 text-sm text-slate-100">
+                Edit your bio, picture, speciality and clinic information.
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </ScrollView>
