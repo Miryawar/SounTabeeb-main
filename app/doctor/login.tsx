@@ -5,14 +5,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -25,7 +25,7 @@ export default function DoctorLogin() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      return Alert.alert("Please enter both email and password.");
+      return Alert.alert("Please enter login id and password.");
     }
 
     const result = await login(email, password);
@@ -56,7 +56,7 @@ export default function DoctorLogin() {
             <Text className="text-4xl font-bold text-gray-800">Doctor</Text>
             <Text className="text-3xl font-bold text-blue-600">Login</Text>
             <Text className="text-center text-gray-500 mt-3 mb-6">
-              Enter your doctor credentials to access the dashboard.
+              Enter your credentials to access the dashboard.
             </Text>
 
             <View className="w-full space-y-4">
@@ -65,7 +65,7 @@ export default function DoctorLogin() {
                 <TextInput
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="doctor@example.com"
+                  placeholder="doctor@email.com"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   className="border border-gray-300 rounded-2xl px-4 py-3"
@@ -102,11 +102,11 @@ export default function DoctorLogin() {
               >
                 <Ionicons name="log-in" size={22} color="#fff" />
                 <Text className="ml-3 text-white text-lg font-semibold">
-                  Doctor Login
+                  Sign In
                 </Text>
               </TouchableOpacity>
 
-              <View className="flex-row items-center justify-center gap-2 px-2 my-4">
+              {/* <View className="flex-row items-center justify-center gap-2 px-2 my-4">
                 <View className="flex-1 h-[1px] bg-gray-400" />
                 <Text className="text-gray-500">OR</Text>
                 <View className="flex-1 h-[1px] bg-gray-400" />
@@ -119,7 +119,7 @@ export default function DoctorLogin() {
                 <Text className="text-blue-600 text-base font-semibold">
                   Don't have an account? Sign Up
                 </Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           </View>
         </ScrollView>
