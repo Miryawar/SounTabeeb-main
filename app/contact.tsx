@@ -5,13 +5,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Image,
-  Linking,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    Linking,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 export default function Contact() {
@@ -68,7 +68,7 @@ export default function Contact() {
 
         <View className="bg-blue-50 justify-between items-center px-4 rounded-lg mt-6 py-6 ">
           <Text className="text-2xl text-gray-700 font-bold">
-            We're Here to Help
+            We are Here to Help
           </Text>
           <Text className="text-lg  font-medium text-gray-600">
             Have a question or need a support?

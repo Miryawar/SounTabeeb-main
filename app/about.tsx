@@ -1,6 +1,6 @@
-import Footer from "@/components/Footer";
-import { View, Text, Image, ScrollView } from "react-native";
 import { assets } from "@/assets/assets";
+import Footer from "@/components/Footer";
+import { Image, ScrollView, Text, View } from "react-native";
 const chooseData = [
   {
     id: 1,
@@ -23,9 +23,11 @@ const chooseData = [
 ];
 export default function About() {
   return (
-    <ScrollView  contentContainerStyle={{ paddingBottom: 120 }}>
+    <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
       <View className="mt-10">
-        <Text className=" text-gray-600 text-2xl  text-center font-bold mb-2">About Us</Text>
+        <Text className=" text-gray-600 text-2xl  text-center font-bold mb-2">
+          About Us
+        </Text>
         <View className="px-6 mb-8 mt-8">
           <Image
             source={assets.about_image}
@@ -45,7 +47,7 @@ export default function About() {
             Prescripto is committed to excellence in healthcare technology. We
             continuously strive to enhance our platform, integrating the latest
             advancements to improve user experience and deliver superior
-            service. Whether you're booking your first appointment or managing
+            service. Whether you are booking your first appointment or managing
             ongoing care, Prescripto is here to support you every step of the
             way.
           </Text>
@@ -59,19 +61,17 @@ export default function About() {
         </View>
 
         <View className="px-6 mt-5">
-  <Text className="text-gray-500 text-lg">
-    WHY <Text className="font-bold text-gray-500">
-          CHOOSE US
-    </Text>
-  </Text>
-</View>
+          <Text className="text-gray-500 text-lg">
+            WHY <Text className="font-bold text-gray-500">CHOOSE US</Text>
+          </Text>
+        </View>
         <View className=" flex-1 gap-3 p-5">
           {chooseData.map((data, index) => (
             <View
               key={index}
               className="bg-white p-5 rounded-4xl shadow-md border border-gray-100 gap-6 "
             >
-              <Text  className="text-gray-500  font-bold  text-xl mb-2">
+              <Text className="text-gray-500  font-bold  text-xl mb-2">
                 {data.title}
               </Text>
               <Text className="text-gray-500 text-lg leading-8">
