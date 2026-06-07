@@ -48,4 +48,44 @@ export async function apiPut(path: string, body: any, tokenKey = "token") {
   return res;
 }
 
+export async function apiDelete(path: string, tokenKey = "token") {
+  const token = await getToken(tokenKey);
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  return res;
+}
+
+export async function uploadProfilePicture(
+  base64Image: string,
+  tokenKey = "token",
+) {
+  const token = await getToken(tokenKey);
+  const res = await fetch(`${API_BASE}/api/users/upload-profile-picture`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ profilePicture: base64Image }),
+  });
+  return res;
+}
+
+export async function removeProfilePicture(tokenKey = "token") {
+  const token = await getToken(tokenKey);
+  const res = await fetch(`${API_BASE}/api/users/profile-picture`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  return res;
+}
+
 export default { API_BASE, apiGet, apiPost, apiPut };

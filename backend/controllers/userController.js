@@ -82,3 +82,42 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.uploadProfilePicture = async (req, res) => {
+  try {
+    const { profilePicture } = req.body;
+
+    if (!profilePicture) {
+      return res.status(400).json({ message: "No image provided" });
+    }
+
+    const user = await req.user.constructor
+      .findByIdAndUpdate(req.user._id, { profilePicture }, { new: true })
+      .select("-password");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({
+      message: "Profile picture updated successfully",
+      profilePicture: user.profilePicture,
+    });
+  } catch (err) {
+    console.error("UPLOAD PROFILE PICTURE ERROR:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.removeProfilePicture = async (req, res) => {
+  try {
+    const user = await req.user.constructor
+      .findByIdAndUpdate(req.user._id, { profilePicture: null }, { new: true })
+      .select("-password");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({ message: "Profile picture removed successfully" });
+  } catch (err) {
+    console.error("REMOVE PROFILE PICTURE ERROR:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};

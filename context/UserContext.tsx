@@ -1,6 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useState } from "react";
-import { apiGet, apiPost, apiPut } from "../utils/api";
+import {
+    apiGet,
+    apiPost,
+    apiPut,
+    removeProfilePicture,
+    uploadProfilePicture,
+} from "../utils/api";
 const UserContext = createContext<any>(null);
 
 export const UserProvider = ({ children }: any) => {
@@ -178,6 +184,46 @@ export const UserProvider = ({ children }: any) => {
     setUserName(null);
   };
 
+  const uploadProfilePic = async (base64Image: string) => {
+    try {
+      const res = await uploadProfilePicture(base64Image);
+      const data = await parseResponse(res);
+      if (!res.ok) throw new Error(data.message || "Upload failed");
+
+      // Update local state with new profile picture
+      setProfileImage(base64Image);
+      await AsyncStorage.setItem("profileImage", base64Image);
+
+      // Update user object with new profile picture
+      setUser({ ...user, profilePicture: base64Image });
+
+      return { ok: true, message: "Profile picture updated" };
+    } catch (err: any) {
+      console.log("UPLOAD PROFILE PICTURE ERROR:", err);
+      return { ok: false, message: err.message };
+    }
+  };
+
+  const removeProfilePic = async () => {
+    try {
+      const res = await removeProfilePicture();
+      const data = await parseResponse(res);
+      if (!res.ok) throw new Error(data.message || "Remove failed");
+
+      // Clear local state
+      setProfileImage(null);
+      await AsyncStorage.removeItem("profileImage");
+
+      // Update user object
+      setUser({ ...user, profilePicture: null });
+
+      return { ok: true, message: "Profile picture removed" };
+    } catch (err: any) {
+      console.log("REMOVE PROFILE PICTURE ERROR:", err);
+      return { ok: false, message: err.message };
+    }
+  };
+
   return (
     <UserContext.Provider
       value={{
@@ -192,6 +238,8 @@ export const UserProvider = ({ children }: any) => {
         register,
         updateUserProfile,
         logout,
+        uploadProfilePic,
+        removeProfilePic,
       }}
     >
       {children}

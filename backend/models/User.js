@@ -16,6 +16,10 @@ const userSchema = new mongoose.Schema({
   district: String,
   pincode: String,
   gender: String,
+  profilePicture: {
+    type: String,
+    default: null,
+  },
 
   role: { type: String, enum: ["user", "doctor", "admin"], default: "user" },
   doctor: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor" },

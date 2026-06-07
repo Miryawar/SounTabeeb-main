@@ -1,14 +1,89 @@
 import { assets } from "@/assets/assets";
-import { Ionicons } from "@expo/vector-icons";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
-
 import { useUser } from "@/context/UserContext";
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Profile() {
   const router = useRouter();
-  const { logout, user, profileImage, userName } = useUser();
+  const {
+    logout,
+    user,
+    profileImage,
+    userName,
+    uploadProfilePic,
+    removeProfilePic,
+  } = useUser();
+  const [uploading, setUploading] = useState(false);
+
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets[0].base64) {
+        setUploading(true);
+        const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
+        const response = await uploadProfilePic(base64Image);
+
+        if (response.ok) {
+          Alert.alert("Success", "Profile picture updated successfully");
+        } else {
+          Alert.alert("Error", response.message || "Failed to upload picture");
+        }
+        setUploading(false);
+      }
+    } catch (error) {
+      console.log("Image picker error:", error);
+      Alert.alert("Error", "Failed to pick image");
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveProfilePicture = async () => {
+    Alert.alert(
+      "Remove Profile Picture",
+      "Are you sure you want to remove your profile picture?",
+      [
+        { text: "Cancel", onPress: () => {} },
+        {
+          text: "Remove",
+          onPress: async () => {
+            setUploading(true);
+            const response = await removeProfilePic();
+
+            if (response.ok) {
+              Alert.alert("Success", "Profile picture removed successfully");
+            } else {
+              Alert.alert(
+                "Error",
+                response.message || "Failed to remove picture",
+              );
+            }
+            setUploading(false);
+          },
+          style: "destructive",
+        },
+      ],
+    );
+  };
+
   return (
     <SafeAreaView style={{ padding: 16 }}>
       <View>
@@ -16,7 +91,7 @@ export default function Profile() {
           My Profile
         </Text>
 
-        <View className="flex flex-row items-center gap-4 bg-[#fff] px-4 py-8 rounded-;">
+        <View className="flex flex-row items-center gap-4 bg-[#fff] px-4 py-8 rounded-lg">
           <Image
             source={
               profileImage
@@ -25,25 +100,52 @@ export default function Profile() {
                   ? { uri: user.profilePicture }
                   : assets.profile_pic
             }
-            className=" w-32 h-32 rounded-full"
+            className="w-32 h-32 rounded-full"
             resizeMode="contain"
           />
 
-          <View>
-            {/* <Text className="text-2xl font-bold text-gray-800">{userDetail.name}</Text> */}
-            <Text className="text-gray-700 text-2xl mb-4">
+          <View className="flex-1">
+            <Text className="text-gray-700 text-2xl mb-4 font-bold">
               {user?.name || userName || "User"}
             </Text>
-            {/* <Text className="text-medium font-bold text-gray-600">{userDetail.email}</Text> */}
-
             <Text className="text-medium font-bold text-gray-600 mb-2">
               {user?.email || "No email"}
             </Text>
-
-            {/* <Text className="text-lg font-bold text-gray-600">{userDetail.phone}</Text> */}
             <Text className="text-lg font-bold text-gray-600 mb-2">
               {user?.phone || "No phone"}
             </Text>
+
+            <View className="mt-3 flex-row flex-wrap gap-2">
+              <TouchableOpacity
+                onPress={pickImage}
+                disabled={uploading}
+                className="bg-blue-500 px-4 py-2 rounded-lg"
+              >
+                {uploading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text className="text-white font-semibold">
+                    Upload Profile Picture
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              {(profileImage || user?.profilePicture) && (
+                <TouchableOpacity
+                  onPress={handleRemoveProfilePicture}
+                  disabled={uploading}
+                  className="bg-red-500 px-4 py-2 rounded-lg"
+                >
+                  {uploading ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <Text className="text-white font-semibold">
+                      Delete Profile Picture
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </View>
       </View>
