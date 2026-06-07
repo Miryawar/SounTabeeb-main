@@ -1,4 +1,3 @@
-import { assets } from "@/assets/assets";
 import { useUser } from "@/context/UserContext";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -92,17 +91,17 @@ export default function Profile() {
         </Text>
 
         <View className="flex flex-row items-center gap-4 bg-[#fff] px-4 py-8 rounded-lg">
-          <Image
-            source={
-              profileImage
-                ? { uri: profileImage }
-                : user?.profilePicture
-                  ? { uri: user.profilePicture }
-                  : assets.profile_pic
-            }
-            className="w-32 h-32 rounded-full"
-            resizeMode="contain"
-          />
+          {profileImage || user?.profilePicture ? (
+            <Image
+              source={{ uri: profileImage || user?.profilePicture }}
+              className="w-32 h-32 rounded-full"
+              resizeMode="contain"
+            />
+          ) : (
+            <View className="w-32 h-32 rounded-full bg-gray-200 items-center justify-center">
+              <Ionicons name="person" size={64} color="#6b7280" />
+            </View>
+          )}
 
           <View className="flex-1">
             <Text className="text-gray-700 text-2xl mb-4 font-bold">

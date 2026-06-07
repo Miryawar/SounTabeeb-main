@@ -19,7 +19,8 @@ exports.getProfile = async (req, res) => {
       pincode: user.pincode || "",
       gender: user.gender || "",
       role: user.role || "user",
-      profilePicture: doctorProfile?.profilePicture || "",
+      profilePicture:
+        doctorProfile?.profilePicture || user.profilePicture || null,
       speciality: doctorProfile?.speciality || "",
       qualification: doctorProfile?.qualification || "",
       experience: doctorProfile?.experience || "",
