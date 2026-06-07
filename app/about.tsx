@@ -38,13 +38,13 @@ export default function About() {
 
         <View className="flex gap-4 px-6">
           <Text className="text-gray-500 ">
-            Welcome to Prescripto, your trusted partner in managing your
-            healthcare needs conveniently and efficiently. At Prescripto, we
+            Welcome to SounTabeeb, your trusted partner in managing your
+            healthcare needs conveniently and efficiently. At SounTabeeb, we
             understand the challenges individuals face when it comes to
             scheduling doctor appointments and managing their health records.
           </Text>
           <Text className="text-gray-500 leading-5">
-            Prescripto is committed to excellence in healthcare technology. We
+            SounTabeeb is committed to excellence in healthcare technology. We
             continuously strive to enhance our platform, integrating the latest
             advancements to improve user experience and deliver superior
             service. Whether you are booking your first appointment or managing
