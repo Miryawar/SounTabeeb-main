@@ -27,7 +27,7 @@ export const TopDoctors = () => {
               onPress={() => router.push(`/appointment/${item._id}`)}
               className="border border-blue-200 rounded-lg mb-4 overflow-hidden bg-white"
             >
-              <Image source={item.image} className="w-full h-30 bg-blue-50" />
+              <Image source={item.image} className="w-40 h-40 bg-blue-50" />
 
               <View className="p-5">
                 <View className="flex-row items-center gap-2 text-center">

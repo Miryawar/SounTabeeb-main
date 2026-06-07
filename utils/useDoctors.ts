@@ -26,7 +26,9 @@ export function useDoctors() {
               fees: d.fees || d.fee || 300,
               // backend may provide an `available` flag; default to true when missing
               available: typeof d.available === "boolean" ? d.available : true,
-              image: assets.doclogo,
+              image: d.profilePicture
+                ? { uri: d.profilePicture }
+                : assets.doclogo,
             }));
             if (mounted) setDoctors(mapped);
           }
