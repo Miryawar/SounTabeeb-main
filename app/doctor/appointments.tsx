@@ -56,7 +56,7 @@ export default function DoctorAppointments() {
           Review your upcoming appointments for the week.
         </Text>
 
-        <View className="space-y-4">
+        <View className="space-y-5">
           {appointments.map((item) => (
             <View
               key={item.id}

@@ -1,17 +1,14 @@
 import { assets } from "@/assets/assets";
-import Footer from "@/components/Footer";
-import emailjs from "@emailjs/browser";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import {
-    Image,
-    Linking,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Image,
+  Linking,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 export default function Contact() {
@@ -19,33 +16,55 @@ export default function Contact() {
   const phoneNumber = "916005647721";
   const mess = "Hello, how can i help you?";
   const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(mess)}`;
-  const [isFocused, setIsFocused] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
-  // SEND FUNCTION
-  const sendMessage = async () => {
+  // const [isFocused, setIsFocused] = useState(false);
+
+  const openCurrentLocation = async () => {
+    const mapUrl =
+      Platform.OS === "ios"
+        ? "maps://maps.apple.com/?q=Current%20Location"
+        : "geo:0,0?q=Current+Location";
+
+    const fallbackUrl =
+      "https://www.google.com/maps/search/?api=1&query=Current+Location";
+
     try {
-      await emailjs.send(
-        "service_xz8o6zj",
-        "template_vnux19k",
-
-        {
-          user_name: name,
-          user_email: email,
-          subject: subject,
-          message: message,
-        },
-        "rxQf7E1rI8Fa33AbP",
-      );
-
-      alert("Message Sent Successfully!");
+      const supported = await Linking.canOpenURL(mapUrl);
+      if (supported) {
+        await Linking.openURL(mapUrl);
+      } else {
+        await Linking.openURL(fallbackUrl);
+      }
     } catch (error) {
-      console.log(error);
-      alert("Failed to send message");
+      console.warn("Unable to open map:", error);
+      await Linking.openURL(fallbackUrl);
     }
   };
+  // const [name, setName] = useState("");
+  // const [email, setEmail] = useState("");
+  // const [subject, setSubject] = useState("");
+  // const [message, setMessage] = useState("");
+  // // SEND FUNCTION
+  // const sendMessage = async () => {
+  //   try {
+  //     await emailjs.send(
+  //       "service_xz8o6zj",
+  //       "template_vnux19k",
+
+  //       {
+  //         user_name: name,
+  //         user_email: email,
+  //         subject: subject,
+  //         message: message,
+  //       },
+  //       "rxQf7E1rI8Fa33AbP",
+  //     );
+
+  //     alert("Message Sent Successfully!");
+  //   } catch (error) {
+  //     console.log(error);
+  //     alert("Failed to send message");
+  //   }
+  // };
 
   return (
     <SafeAreaView className="flex-1">
@@ -146,7 +165,10 @@ export default function Contact() {
           </Ionicons>
         </TouchableOpacity>
 
-        <View className="flex flex-row items-center justify-between bg-[#fff] px-4  rounded-lg mb-2 py-3">
+        <TouchableOpacity
+          onPress={openCurrentLocation}
+          className="flex flex-row items-center justify-between bg-[#fff] px-4 rounded-lg mb-2 py-3"
+        >
           <View className="flex flex-row gap-8 items-center flex-1">
             <View className="bg-blue-50 p-2 rounded-full">
               <Ionicons
@@ -158,17 +180,17 @@ export default function Contact() {
             <View className="flex-1">
               <Text className="font-bold text-gray-700 text-xl">Visit Us</Text>
               <Text className="text-gray-600 " numberOfLines={2}>
-                {" "}
                 Budgam (193411)
+              </Text>
+              <Text className="text-sm text-gray-500 mt-1">
+                Open in Map 
               </Text>
             </View>
           </View>
-          <Ionicons name="arrow-forward" size={24} color={"gray"}>
-            {" "}
-          </Ionicons>
-        </View>
+          <Ionicons name="arrow-forward" size={24} color={"gray"} />
+        </TouchableOpacity>
 
-        <Text className="text-blue-600 font-bold text-xl m-4">
+        {/* <Text className="text-blue-600 font-bold text-xl m-4">
           Send us a Message
         </Text>
         <View className="flex flex-row items-center gap-4">
@@ -205,7 +227,6 @@ export default function Contact() {
         <View className="flex-1 flex-row items-center bg-[#fff] rounded-lg px-4 py-2 gap-2 mt-4">
           {!isFocused && <Ionicons name="person" size={24} color={"gray"} />}
 
-          {/* <Ionicons name="pencil-sharp" size={20} color={"gray"}/> */}
           <TextInput
             placeholder="Your Message"
             value={message}
@@ -222,9 +243,9 @@ export default function Contact() {
         >
           <Ionicons name="send" size={16} color={"#fff"}></Ionicons>
           <Text className="text-white font-bold text-lg">Send Message</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
-        <Footer></Footer>
+        {/* <Footer></Footer> */}
       </ScrollView>
     </SafeAreaView>
   );

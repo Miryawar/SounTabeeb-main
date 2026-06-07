@@ -3,7 +3,7 @@ import { useDoctor } from "@/context/DoctorContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function DoctorDashboard() {
@@ -40,10 +40,10 @@ export default function DoctorDashboard() {
 
           <View className="flex-row items-start justify-between">
             <View className="flex-1 pr-4">
-              <Text className="text-base font-semibold text-sky-100 uppercase tracking-[0.24em]">
-                Doctor Dashboard
-              </Text>
-              <Text className="mt-3 text-3xl font-bold text-white">
+              {/* <Text className="text-xl font-semibold text-sky-100 uppercase tracking-[0.22em]">
+              Doctor Dashboard
+              </Text> */}
+              <Text className="mt-1 text-2xl font-bold text-white">
                 Welcome back, {doctor.name}
               </Text>
               <Text className="mt-3 text-sm leading-6 text-sky-100/90">
@@ -57,18 +57,18 @@ export default function DoctorDashboard() {
                   await logout();
                   router.replace("/doctor/login");
                 }}
-                className="mb-3 rounded-full bg-white/15 px-3 py-2 border border-white/20"
+                className="mb-8 rounded-full bg-white/20 px-3 py-2 border border-white/20"
               >
                 <Text className="text-sm font-semibold text-white">Logout</Text>
               </TouchableOpacity>
-              <View className="h-24 w-24 rounded-3xl border border-white/20 overflow-hidden bg-slate-200">
+              <View className="h-35 w-30 rounded-3xl border border-white/20 overflow-hidden bg-slate-200">
                 <Image
                   source={
                     doctor.profilePicture
                       ? { uri: doctor.profilePicture }
                       : assets.doclogo || assets.profile_pic
                   }
-                  style={{ width: 96, height: 96, borderRadius: 22 }}
+                  style={{ width: 110, height: 130, borderRadius: 22 }}
                 />
               </View>
             </View>
@@ -92,10 +92,10 @@ export default function DoctorDashboard() {
 
         <View className="mb-6 space-y-4">
           <LinearGradient
-            colors={["#d946ef", "#f472b6", "#f59e0b"]}
+            colors={["#84873e", "#735eb2"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            className="flex-row items-center justify-between rounded-3xl p-4 shadow-md"
+            className="flex-row items-center justify-between rounded-3xl p-3 shadow-md"
           >
             <View>
               <Text className="text-sm uppercase tracking-[0.2em] text-white/90">
@@ -112,7 +112,7 @@ export default function DoctorDashboard() {
 
           <View className="flex-row gap-4">
             <LinearGradient
-              colors={["#10b981", "#06b6d4"]}
+              colors={["#7eb1e4", "#49ba82"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               className="flex-1 rounded-3xl p-4 shadow-md"
@@ -126,7 +126,7 @@ export default function DoctorDashboard() {
               </Text>
             </LinearGradient>
             <LinearGradient
-              colors={["#6366f1", "#8b5cf6"]}
+              colors={["#7eb1e4", "#49ba82"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               className="flex-1 rounded-3xl p-4 shadow-md"
@@ -143,7 +143,7 @@ export default function DoctorDashboard() {
         </View>
 
         <View className="space-y-3">
-          <Text className="text-base font-semibold text-white">
+          <Text className=" text-base font-semibold text-white">
             Quick actions
           </Text>
 
@@ -152,15 +152,15 @@ export default function DoctorDashboard() {
             className="rounded-3xl overflow-hidden shadow-md"
           >
             <LinearGradient
-              colors={["#0284c7", "#0c4a6e"]}
+              colors={["#717683", "#346aac"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              className="p-5"
+              className="p-4"
             >
               <Text className="text-lg font-semibold text-white">
                 Manage appointments
               </Text>
-              <Text className="mt-2 text-sm text-slate-100">
+              <Text className="mt-2 text-sm text-white/90">
                 Review bookings, confirm consultations, and see your day plan.
               </Text>
             </LinearGradient>
@@ -171,15 +171,15 @@ export default function DoctorDashboard() {
             className="rounded-3xl overflow-hidden shadow-md"
           >
             <LinearGradient
-              colors={["#c2410c", "#9a3412"]}
+              colors={["#9c3939", "#0ea5e9"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              className="p-5"
+              className="p-4"
             >
               <Text className="text-lg font-semibold text-white">
                 Patient records
               </Text>
-              <Text className="mt-2 text-sm text-slate-100">
+              <Text className="mt-2 text-sm text-white/90">
                 Access patient history, messages, and appointment notes.
               </Text>
             </LinearGradient>
@@ -190,15 +190,15 @@ export default function DoctorDashboard() {
             className="rounded-3xl overflow-hidden shadow-md"
           >
             <LinearGradient
-              colors={["#6d28d9", "#be185d"]}
+              colors={["#5db350", "#7a705b"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              className="p-5"
+              className="p-4"
             >
               <Text className="text-lg font-semibold text-white">
                 Update profile
               </Text>
-              <Text className="mt-2 text-sm text-slate-100">
+              <Text className="mt-2 text-sm text-white/90">
                 Edit your bio, picture, speciality and clinic information.
               </Text>
             </LinearGradient>

@@ -117,7 +117,7 @@ export default function Profile() {
               {user?.phone || "No phone"}
             </Text>
 
-            {!isPatient && (
+            {/* {!isPatient && (
               <View className="mt-3 flex-row flex-wrap gap-2">
                 <TouchableOpacity
                   onPress={pickImage}
@@ -149,7 +149,7 @@ export default function Profile() {
                   </TouchableOpacity>
                 )}
               </View>
-            )}
+            )} */}
           </View>
         </View>
       </View>

@@ -11,7 +11,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View, KeyboardAvoidingView
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -122,6 +122,7 @@ export default function DoctorProfile() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
+      <KeyboardAvoidingView behavior="padding">
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <Text className="text-3xl font-bold text-gray-900 mb-3">
           Doctor Profile
@@ -268,6 +269,7 @@ export default function DoctorProfile() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
