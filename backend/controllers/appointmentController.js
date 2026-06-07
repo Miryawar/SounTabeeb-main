@@ -12,6 +12,8 @@ exports.create = async (req, res) => {
       date,
     });
     await appt.save();
+    // Populate doctor info before returning
+    await appt.populate("doctor");
     res.json(appt);
   } catch (err) {
     console.error(err.message);
@@ -21,9 +23,9 @@ exports.create = async (req, res) => {
 
 exports.listForUser = async (req, res) => {
   try {
-    const appts = await Appointment.find({ user: req.user._id }).populate(
-      "doctor",
-    );
+    const appts = await Appointment.find({ user: req.user._id })
+      .populate("doctor")
+      .sort({ date: -1 });
     res.json(appts);
   } catch (err) {
     console.error(err.message);

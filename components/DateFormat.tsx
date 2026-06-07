@@ -1,10 +1,15 @@
 import { apiPost } from "@/utils/api";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useGlobalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 export default function DateFormat({ doctorId }: { doctorId?: string }) {
+  const params = useGlobalSearchParams();
+  const routeDoctorId = Array.isArray(params.doctorId)
+    ? params.doctorId[0]
+    : params.doctorId;
+  const finalDoctorId = doctorId || routeDoctorId || "";
   const date = new Date();
   const options: Intl.DateTimeFormatOptions = {
     weekday: "short",
@@ -15,11 +20,11 @@ export default function DateFormat({ doctorId }: { doctorId?: string }) {
   const formattedDate = date.toLocaleDateString("en-US", options).toUpperCase();
 
   // dates for next 30 days
-  const dates = [];
+  const dates: Date[] = [];
   for (let i = 0; i < 30; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() + i);
-    dates.push(date);
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + i);
+    dates.push(nextDate);
   }
   const [isSelectedIndex, setIsSelectedIndex] = useState(0);
 
@@ -133,7 +138,7 @@ export default function DateFormat({ doctorId }: { doctorId?: string }) {
       </View>
       <TouchableOpacity
         onPress={async () => {
-          if (!doctorId) return Alert.alert("Missing doctor id");
+          if (!finalDoctorId) return Alert.alert("Missing doctor id");
           if (!selectedTime) return Alert.alert("Please select a time");
           const dateObj = new Date(dates[isSelectedIndex]);
           // parse selectedTime like "09:30 AM"
@@ -148,7 +153,7 @@ export default function DateFormat({ doctorId }: { doctorId?: string }) {
           }
           try {
             const res = await apiPost("/api/appointments", {
-              doctorId,
+              doctorId: finalDoctorId,
               date: dateObj.toISOString(),
             });
             const data = await res.json();

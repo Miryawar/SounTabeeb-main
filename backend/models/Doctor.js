@@ -10,6 +10,7 @@ const doctorSchema = new mongoose.Schema({
   experience: String,
   licenseNumber: String,
   bio: { type: String },
+  fees: { type: Number, default: 0 },
   rating: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
 });
