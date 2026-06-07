@@ -3,12 +3,12 @@ import useDoctors from "@/utils/useDoctors";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import {
-    ActivityIndicator,
-    Image,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 const DoctorDetail = () => {
   const { id } = useLocalSearchParams();
@@ -50,7 +50,7 @@ const DoctorDetail = () => {
           </Text>
 
           <Text className="text-gray-600  font-medium mb-2">
-            {doctor.degree}
+            {doctor.qualification || doctor.degree}
           </Text>
 
           <Text className="text-gray-600  font-medium  mb-3">

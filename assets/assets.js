@@ -11,21 +11,20 @@ export const assets = {
   stripe_logo: require("./images/stripe_logo.png"),
   razorpay_logo: require("./images/razorpay_logo.png"),
   arrow_icon: require("./images/arrow_icon.png"),
-  logo:require("./images/logo.png"),
-  doclogo:require("./images/doclogo.png"),
-  menu_icon:require("./images/menu_icon.png"),
-  dropdown_icon:require("./images/dropdown_icon.png"),
-  mainview_icon:require("./images/sountabeeb.png"),
-  design1:require("./images/design1.png"),
-  profile_icon1:require("./images/profile_icon1.png"),
-  profile_icon2:require("./images/profile_icon2.png"),
-  profile_icon3:require("./images/profile_icon3.png"),
-  doctordropdown_icon:require("./images/doctordropdownicon.png"),
-  dropdownabout_icon:require("./images/dropdownabouticon.png"),
-  dropdownchat_icon:require("./images/dropdownchaticon.png"),
-  dropdownlogout_icon:require("./images/dropdownlogouticon.png"),
-  frontimage:require("./images/frontpage.jpg"),
-
+  logo: require("./images/logo.png"),
+  doclogo: require("./images/doclogo.png"),
+  menu_icon: require("./images/menu_icon.png"),
+  dropdown_icon: require("./images/dropdown_icon.png"),
+  mainview_icon: require("./images/sountabeeb.png"),
+  design1: require("./images/design1.png"),
+  profile_icon1: require("./images/profile_icon1.png"),
+  profile_icon2: require("./images/profile_icon2.png"),
+  profile_icon3: require("./images/profile_icon3.png"),
+  doctordropdown_icon: require("./images/doctordropdownicon.png"),
+  dropdownabout_icon: require("./images/dropdownabouticon.png"),
+  dropdownchat_icon: require("./images/dropdownchaticon.png"),
+  dropdownlogout_icon: require("./images/dropdownlogouticon.png"),
+  frontimage: require("./images/frontpage.jpg"),
 };
 
 export const specialityData = [
@@ -62,9 +61,10 @@ export const doctors = [
     name: "Dr. Suhail",
     image: require("./images/doc1.png"),
     speciality: "General physician",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "4 Years",
-    about:"Dr. Suhail has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Suhail has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr. Suhail has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Suhail has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 450,
     address: {
       line1: "17th Cross, Richmond",
@@ -76,9 +76,10 @@ export const doctors = [
     name: "Dr.  Aqsaa",
     image: require("./images/doc2.png"),
     speciality: "Gynecologist",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "3 Years",
-    about:"Dr. Aqsaa has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Aqsaa has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr. Aqsaa has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Aqsaa has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 300,
     address: {
       line1: "27th Cross, Richmond",
@@ -90,9 +91,10 @@ export const doctors = [
     name: "Dr. Saleem",
     image: require("./images/doc3.png"),
     speciality: "Dermatologist",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "1 Years",
-    about:"Dr. Saleem has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Saleem has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr. Saleem has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Saleem has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 300,
     address: {
       line1: "37th Cross, Richmond",
@@ -104,9 +106,10 @@ export const doctors = [
     name: "Dr. Yawar",
     image: require("./images/doc4.png"),
     speciality: "Pediatricians",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "2 Years",
-    about:"Dr. Yawar has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Yawar has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr. Yawar has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Yawar has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 400,
     address: {
       line1: "47th Cross, Richmond",
@@ -118,9 +121,10 @@ export const doctors = [
     name: "Dr. Suzain",
     image: require("./images/doc5.png"),
     speciality: "Neurologist",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "4 Years",
-    about:"Dr. Suzain has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Suzain has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr. Suzain has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Suzain has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 500,
     address: {
       line1: "57th Cross, Richmond",
@@ -132,9 +136,10 @@ export const doctors = [
     name: "Dr. Bilal",
     image: require("./images/doc6.png"),
     speciality: "Neurologist",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "4 Years",
-    about:"Dr. Bilal has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Bilal has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr. Bilal has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Bilal has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 200,
     address: {
       line1: "57th Cross, Richmond",
@@ -146,9 +151,10 @@ export const doctors = [
     name: "Dr. Yasir",
     image: require("./images/doc7.png"),
     speciality: "General physician",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "4 Years",
-    about:"Dr. Yasir has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Yasir has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr. Yasir has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Yasir has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 300,
     address: {
       line1: "17th Cross, Richmond",
@@ -160,9 +166,10 @@ export const doctors = [
     name: "Dr. Hamid",
     image: require("./images/doc8.png"),
     speciality: "Gynecologist",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "3 Years",
-    about:"Dr. Hamid has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Hamid has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr. Hamid has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Hamid has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 600,
     address: {
       line1: "27th Cross, Richmond",
@@ -174,9 +181,10 @@ export const doctors = [
     name: "Dr. Uzmaa",
     image: require("./images/doc9.png"),
     speciality: "Dermatologist",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "1 Years",
-    about:"Dr. Uzmaa has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Uzmaa has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr. Uzmaa has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Uzmaa has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 300,
     address: {
       line1: "37th Cross, Richmond",
@@ -188,9 +196,10 @@ export const doctors = [
     name: "Dr. Junaid",
     image: require("./images/doc10.png"),
     speciality: "Pediatricians",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "2 Years",
-    about:"Dr.  Junaid has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr.  Junaid has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr.  Junaid has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr.  Junaid has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 500,
     address: {
       line1: "47th Cross, Richmond",
@@ -202,9 +211,10 @@ export const doctors = [
     name: "Dr. Iram",
     image: require("./images/doc11.png"),
     speciality: "Neurologist",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "4 Years",
-    about:"Dr. Iram has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Iram has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr. Iram has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Iram has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 400,
     address: {
       line1: "57th Cross, Richmond",
@@ -216,9 +226,10 @@ export const doctors = [
     name: "Dr. Shabir",
     image: require("./images/doc12.png"),
     speciality: "Neurologist",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "4 Years",
-    about:"Dr. Shabir has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Shabir has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr. Shabir has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Shabir has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 300,
     address: {
       line1: "57th Cross, Richmond",
@@ -230,9 +241,10 @@ export const doctors = [
     name: "Dr.  Hayaa",
     image: require("./images/doc13.png"),
     speciality: "General physician",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "4 Years",
-    about:"Dr. Hayaa has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Hayaa has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr. Hayaa has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Hayaa has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 500,
     address: {
       line1: "17th Cross, Richmond",
@@ -244,9 +256,10 @@ export const doctors = [
     name: "Dr. Ishfaq",
     image: require("./images/doc14.png"),
     speciality: "Gynecologist",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "3 Years",
-    about:"Dr. Ishfaq has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Ishfaq has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr. Ishfaq has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Ishfaq has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 600,
     address: {
       line1: "27th Cross, Richmond",
@@ -258,9 +271,10 @@ export const doctors = [
     name: "Dr. Hoorain",
     image: require("./images/doc15.png"),
     speciality: "Dermatologist",
-    degree: "MBBS",
+    qualification: "MBBS",
     experience: "1 Years",
-    about:"Dr. Hoorain has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Hoorian has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
+    about:
+      "Dr. Hoorain has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies. Dr. Hoorian has a strong commitment to delivering comprehensive medical care, focusing on preventive medicine, early diagnosis, and effective treatment strategies.",
     fees: 300,
     address: {
       line1: "37th Cross, Richmond",
