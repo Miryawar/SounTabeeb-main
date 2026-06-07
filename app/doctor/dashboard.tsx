@@ -56,7 +56,7 @@ export default function DoctorDashboard() {
                 source={
                   doctor.profilePicture
                     ? { uri: doctor.profilePicture }
-                    : assets.doctor_icon || assets.profile_pic
+                    : assets.doclogo || assets.profile_pic
                 }
                 style={{ width: 96, height: 96, borderRadius: 22 }}
               />

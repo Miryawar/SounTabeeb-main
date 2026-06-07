@@ -15,8 +15,13 @@ export const TopDoctors = () => {
       <View>
         {loading ? (
           <ActivityIndicator size="large" color="#2563EB" />
+        ) : doctors.length === 0 ? (
+          <Text className="text-center text-gray-500 py-6">
+            No doctors available.
+          </Text>
         ) : (
-          doctors.slice(0, 6).map((item, index) => (
+          // Render one card per available doctor so the section height matches count
+          doctors.map((item, index) => (
             <Pressable
               key={item._id || index}
               onPress={() => router.push(`/appointment/${item._id}`)}
@@ -26,8 +31,18 @@ export const TopDoctors = () => {
 
               <View className="p-5">
                 <View className="flex-row items-center gap-2 text-center">
-                  <Text className="h-2 w-2 bg-green-500 rounded-full"></Text>
-                  <Text className="text-green-500">Available</Text>
+                  <Text
+                    className={`h-2 w-2 rounded-full ${
+                      item.available ? "bg-green-500" : "bg-gray-300"
+                    }`}
+                  ></Text>
+                  <Text
+                    className={
+                      item.available ? "text-green-500" : "text-gray-500"
+                    }
+                  >
+                    {item.available ? "Available" : "Not available"}
+                  </Text>
                 </View>
                 <Text className="text-gray-900 text-lg font-medium">
                   {item.name}

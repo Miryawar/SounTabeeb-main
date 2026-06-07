@@ -1,5 +1,6 @@
 import { assets } from "@/assets/assets";
 import { useDoctor } from "@/context/DoctorContext";
+import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -72,15 +73,38 @@ export default function DoctorProfile() {
     }
 
     const asset = result.assets[0];
+    // Prefer base64 data URI (so backend can save a public URL). Fall back to local URI.
     const imageData = asset.base64
       ? `data:image/jpeg;base64,${asset.base64}`
       : asset.uri;
+    if (!imageData) return;
+    setForm((prev) => ({ ...prev, profilePicture: imageData }));
+
+    if (!imageData) return;
 
     setForm((prev) => ({ ...prev, profilePicture: imageData }));
   };
 
   const handleSave = async () => {
-    const { ok, message } = await updateDoctorProfile(form);
+    let payload = { ...form };
+    try {
+      // If profilePicture is a local file URI, convert to base64 data URI for upload
+      if (
+        payload.profilePicture &&
+        (payload.profilePicture.startsWith("file:") ||
+          payload.profilePicture.startsWith("content:"))
+      ) {
+        const base64 = await FileSystem.readAsStringAsync(
+          payload.profilePicture,
+          { encoding: FileSystem.EncodingType.Base64 },
+        );
+        payload.profilePicture = `data:image/jpeg;base64,${base64}`;
+      }
+    } catch (e) {
+      console.warn("Failed to read image file for upload", e);
+    }
+
+    const { ok, message } = await updateDoctorProfile(payload);
     if (!ok) {
       return Alert.alert("Unable to save", message || "Please try again.");
     }
@@ -117,7 +141,7 @@ export default function DoctorProfile() {
                   ? { uri: form.profilePicture }
                   : doctor.profilePicture
                     ? { uri: doctor.profilePicture }
-                    : assets.doctor_icon || assets.profile_pic
+                    : assets.doclogo || assets.profile_pic
               }
               style={{ width: 140, height: 140, borderRadius: 70 }}
             />

@@ -97,8 +97,10 @@ export const DoctorProvider = ({ children }: any) => {
 
   const updateDoctorProfile = async (updates: any) => {
     try {
+      console.log("UPDATE DOCTOR REQ:", updates);
       const res = await apiPut("/api/doctors/me", updates, "doctorToken");
       const data = await parseResponse(res);
+      console.log("UPDATE DOCTOR RES status:", res.status, "body:", data);
       if (!res.ok) {
         return { ok: false, message: data.message || "Update failed" };
       }
@@ -106,6 +108,7 @@ export const DoctorProvider = ({ children }: any) => {
       setDoctor(data);
       return { ok: true, data };
     } catch (err: any) {
+      console.error("UPDATE DOCTOR ERROR:", err);
       return { ok: false, message: err.message || "Update failed" };
     }
   };

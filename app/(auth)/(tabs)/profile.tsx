@@ -1,14 +1,6 @@
 import { assets } from "@/assets/assets";
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
-import {
-    Image,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "expo-router";
@@ -17,7 +9,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function Profile() {
   const router = useRouter();
   const { logout, user, profileImage, userName } = useUser();
-  const [isEditing, setIsEditing] = useState(false);
   return (
     <SafeAreaView style={{ padding: 16 }}>
       <View>
@@ -30,8 +21,8 @@ export default function Profile() {
             source={
               profileImage
                 ? { uri: profileImage }
-                : user?.image
-                  ? { uri: user.image }
+                : user?.profilePicture
+                  ? { uri: user.profilePicture }
                   : assets.profile_pic
             }
             className=" w-32 h-32 rounded-full"
@@ -40,60 +31,19 @@ export default function Profile() {
 
           <View>
             {/* <Text className="text-2xl font-bold text-gray-800">{userDetail.name}</Text> */}
-            {isEditing ? (
-              <TextInput
-                value={userName || user?.name || ""}
-                onChangeText={() => {
-                  return;
-                }}
-                className="border border-gray-300 rounded-xl p-4 mb-4"
-              />
-            ) : (
-              <Text className="text-gray-700 text-2xl mb-4">
-                {/* {userDetail.name} */}
-                {user?.name || userName || "User"}
-              </Text>
-            )}
+            <Text className="text-gray-700 text-2xl mb-4">
+              {user?.name || userName || "User"}
+            </Text>
             {/* <Text className="text-medium font-bold text-gray-600">{userDetail.email}</Text> */}
 
-            {isEditing ? (
-              <TextInput
-                value={user?.email || ""}
-                onChangeText={() => {
-                  return;
-                }}
-                className="border border-gray-300 rounded-xl p-4 mb-4"
-              />
-            ) : (
-              <Text className="text-medium font-bold text-gray-600 mb-2">
-                {user?.email || "No email"}
-              </Text>
-            )}
+            <Text className="text-medium font-bold text-gray-600 mb-2">
+              {user?.email || "No email"}
+            </Text>
 
             {/* <Text className="text-lg font-bold text-gray-600">{userDetail.phone}</Text> */}
-            {isEditing ? (
-              <TextInput
-                value={user?.phone || ""}
-                onChangeText={() => {
-                  return;
-                }}
-                className="border border-gray-300 rounded-xl p-4 mb-4"
-              ></TextInput>
-            ) : (
-              <Text className="text-lg font-bold text-gray-600 mb-2">
-                {user?.phone || "No phone"}
-              </Text>
-            )}
-
-            <TouchableOpacity
-              onPress={() => setIsEditing(!isEditing)}
-              className="flex flex-row items-center gap-2 bg-blue-50 rounded-xl px-8 py-2 self-center"
-            >
-              <Ionicons name="pencil-sharp" size={16} color={"blue"} />
-              <Text className="text-center text-blue-600">
-                {isEditing ? "Save Changes" : "Edit Profile"}
-              </Text>
-            </TouchableOpacity>
+            <Text className="text-lg font-bold text-gray-600 mb-2">
+              {user?.phone || "No phone"}
+            </Text>
           </View>
         </View>
       </View>

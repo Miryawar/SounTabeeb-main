@@ -1,4 +1,6 @@
 const Doctor = require("../models/Doctor");
+const fs = require("fs");
+const path = require("path");
 
 exports.list = async (req, res) => {
   try {
@@ -62,7 +64,39 @@ exports.updateMe = async (req, res) => {
       "bio",
     ];
 
+    // Handle profile picture base64 upload (data URI)
+    if (
+      req.body.profilePicture &&
+      typeof req.body.profilePicture === "string"
+    ) {
+      const pp = req.body.profilePicture;
+      if (pp.startsWith("data:")) {
+        // decode and save file
+        const matches = pp.match(/^data:(image\/\w+);base64,(.+)$/);
+        if (matches) {
+          const mime = matches[1];
+          const ext = mime.split("/")[1] || "jpg";
+          const b64 = matches[2];
+          const filename = `${doctor._id || user._id}-${Date.now()}.${ext}`;
+          const uploadsDir = path.join(__dirname, "..", "uploads");
+          if (!fs.existsSync(uploadsDir))
+            fs.mkdirSync(uploadsDir, { recursive: true });
+          const filePath = path.join(uploadsDir, filename);
+          fs.writeFileSync(filePath, Buffer.from(b64, "base64"));
+          // build public URL
+          const protocol = req.protocol;
+          const host = req.get("host");
+          const url = `${protocol}://${host}/uploads/${filename}`;
+          doctor.profilePicture = url;
+        }
+      } else if (pp.startsWith("http") || pp.startsWith("/uploads/")) {
+        // already a URL
+        doctor.profilePicture = pp;
+      }
+    }
+
     allowedFields.forEach((field) => {
+      if (field === "profilePicture") return; // already handled
       if (req.body[field] !== undefined) {
         doctor[field] = req.body[field];
       }

@@ -24,6 +24,8 @@ export function useDoctors() {
               experience: d.experience || d.years || "1 Year",
               about: d.bio || d.about || "",
               fees: d.fees || d.fee || 300,
+              // backend may provide an `available` flag; default to true when missing
+              available: typeof d.available === "boolean" ? d.available : true,
               image: assets.doclogo,
             }));
             if (mounted) setDoctors(mapped);

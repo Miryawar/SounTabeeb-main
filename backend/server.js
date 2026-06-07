@@ -11,6 +11,10 @@ const User = require("./models/User");
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
+const path = require("path");
+
+// Serve uploaded files
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const PORT = process.env.PORT || 5000;
 
