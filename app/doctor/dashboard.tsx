@@ -8,7 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function DoctorDashboard() {
   const router = useRouter();
-  const { doctor, loading } = useDoctor();
+  const { doctor, loading, logout } = useDoctor();
 
   useEffect(() => {
     if (!loading && !doctor) {
@@ -38,7 +38,7 @@ export default function DoctorDashboard() {
           <View className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
           <View className="absolute -bottom-8 left-4 h-24 w-24 rounded-full bg-white/10" />
 
-          <View className="flex-row items-center justify-between">
+          <View className="flex-row items-start justify-between">
             <View className="flex-1 pr-4">
               <Text className="text-base font-semibold text-sky-100 uppercase tracking-[0.24em]">
                 Doctor Dashboard
@@ -51,15 +51,26 @@ export default function DoctorDashboard() {
                   "Write a short introduction so patients can get to know you."}
               </Text>
             </View>
-            <View className="h-24 w-24 rounded-3xl border border-white/20 overflow-hidden bg-slate-200">
-              <Image
-                source={
-                  doctor.profilePicture
-                    ? { uri: doctor.profilePicture }
-                    : assets.doclogo || assets.profile_pic
-                }
-                style={{ width: 96, height: 96, borderRadius: 22 }}
-              />
+            <View className="items-end">
+              <TouchableOpacity
+                onPress={async () => {
+                  await logout();
+                  router.replace("/doctor/login");
+                }}
+                className="mb-3 rounded-full bg-white/15 px-3 py-2 border border-white/20"
+              >
+                <Text className="text-sm font-semibold text-white">Logout</Text>
+              </TouchableOpacity>
+              <View className="h-24 w-24 rounded-3xl border border-white/20 overflow-hidden bg-slate-200">
+                <Image
+                  source={
+                    doctor.profilePicture
+                      ? { uri: doctor.profilePicture }
+                      : assets.doclogo || assets.profile_pic
+                  }
+                  style={{ width: 96, height: 96, borderRadius: 22 }}
+                />
+              </View>
             </View>
           </View>
 
