@@ -152,7 +152,7 @@ export default function Index() {
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* <TouchableOpacity
+            <TouchableOpacity
               onPress={() => router.push("/doctor/signup")}
               activeOpacity={0.8}
               className="mt-3"
@@ -178,7 +178,7 @@ export default function Index() {
                   <Ionicons name="chevron-forward" size={24} color="#10B981" />
                 </View>
               </LinearGradient>
-            </TouchableOpacity> */}
+            </TouchableOpacity>
           </View>
 
           {/* Features Section */}
