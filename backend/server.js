@@ -10,13 +10,13 @@ const User = require("./models/User");
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   await connectDB(
-    process.env.MONGO_URI || "mongodb://10.162.73.117:5000/sountabeeb",
+    process.env.MONGO_URI || "mongodb://172.28.37.117:5000/sountabeeb",
   );
 
   // Routes

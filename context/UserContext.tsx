@@ -149,7 +149,7 @@ export const UserProvider = ({ children }: any) => {
     extras: any = {},
   ) => {
     try {
-      const body = { name, email,password, ...extras };
+      const body = { name, email, password, ...extras };
       const res = await apiPost("/api/auth/register", body);
       const data = await parseResponse(res);
       if (!res.ok) throw new Error(data.message || "Register failed");

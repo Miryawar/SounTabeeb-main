@@ -28,9 +28,29 @@ exports.updateMe = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const doctor = await Doctor.findOne({ user: user._id });
+    let doctor = await Doctor.findOne({ user: user._id });
+
+    // If the doctor profile doesn't exist yet, create one so edits can be saved
     if (!doctor) {
-      return res.status(404).json({ message: "Doctor profile not found" });
+      console.log(
+        "Doctor profile missing for user, creating new doctor profile",
+        user._id,
+      );
+      doctor = await Doctor.create({
+        user: user._id,
+        name: user.name || "",
+        email: user.email || "",
+      });
+      // also attach to user record if needed
+      try {
+        const User = require("../models/User");
+        await User.findByIdAndUpdate(user._id, { doctor: doctor._id });
+      } catch (e) {
+        console.warn(
+          "Failed to attach doctor id to user record:",
+          e.message || e,
+        );
+      }
     }
 
     const allowedFields = [
@@ -72,7 +92,7 @@ exports.updateMe = async (req, res) => {
       bio: doctor.bio || "",
     });
   } catch (err) {
-    console.error("UPDATE DOCTOR PROFILE ERROR:", err.message);
+    console.error("UPDATE DOCTOR PROFILE ERROR:", err.message || err);
     res.status(500).json({ message: "Server error" });
   }
 };

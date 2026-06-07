@@ -1,15 +1,16 @@
 import { assets } from "@/assets/assets";
 import { useDoctor } from "@/context/DoctorContext";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    Alert,
-    Image,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -22,7 +23,6 @@ export default function DoctorProfile() {
     speciality: "",
     qualification: "",
     experience: "",
-    licenseNumber: "",
     bio: "",
   });
 
@@ -39,7 +39,6 @@ export default function DoctorProfile() {
         speciality: doctor.speciality || "",
         qualification: doctor.qualification || "",
         experience: doctor.experience || "",
-        licenseNumber: doctor.licenseNumber || "",
         bio: doctor.bio || "",
       });
     }
@@ -47,6 +46,37 @@ export default function DoctorProfile() {
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePickImage = async () => {
+    if (!editing) return;
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      return Alert.alert(
+        "Permission required",
+        "Please allow access to your photo library to update your profile picture.",
+      );
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+      base64: true,
+    });
+
+    if (result.canceled || !result.assets?.length) {
+      return;
+    }
+
+    const asset = result.assets[0];
+    const imageData = asset.base64
+      ? `data:image/jpeg;base64,${asset.base64}`
+      : asset.uri;
+
+    setForm((prev) => ({ ...prev, profilePicture: imageData }));
   };
 
   const handleSave = async () => {
@@ -77,16 +107,26 @@ export default function DoctorProfile() {
         </Text>
 
         <View className="items-center mb-6">
-          <Image
-            source={
-              form.profilePicture
-                ? { uri: form.profilePicture }
-                : doctor.profilePicture
-                  ? { uri: doctor.profilePicture }
-                  : assets.doctor_icon || assets.profile_pic
-            }
-            style={{ width: 140, height: 140, borderRadius: 70 }}
-          />
+          <TouchableOpacity
+            onPress={handlePickImage}
+            activeOpacity={editing ? 0.7 : 1}
+          >
+            <Image
+              source={
+                form.profilePicture
+                  ? { uri: form.profilePicture }
+                  : doctor.profilePicture
+                    ? { uri: doctor.profilePicture }
+                    : assets.doctor_icon || assets.profile_pic
+              }
+              style={{ width: 140, height: 140, borderRadius: 70 }}
+            />
+          </TouchableOpacity>
+          {editing && (
+            <Text className="text-xs text-gray-500 mt-2">
+              Change profile picture
+            </Text>
+          )}
           <Text className="text-xl font-semibold text-gray-900 mt-4">
             {doctor.name}
           </Text>
@@ -160,38 +200,6 @@ export default function DoctorProfile() {
               </Text>
             )}
           </View>
-
-          <View>
-            <Text className="text-sm text-gray-500">License Number</Text>
-            {editing ? (
-              <TextInput
-                value={form.licenseNumber}
-                onChangeText={(val) => handleChange("licenseNumber", val)}
-                placeholder="Medical license number"
-                className="border border-gray-200 rounded-2xl px-4 py-3 mt-2"
-              />
-            ) : (
-              <Text className="text-gray-700 mt-2">
-                {doctor.licenseNumber || "Not set"}
-              </Text>
-            )}
-          </View>
-
-          {editing && (
-            <View>
-              <Text className="text-sm text-gray-500">Profile Picture URL</Text>
-              <TextInput
-                value={form.profilePicture}
-                onChangeText={(val) => handleChange("profilePicture", val)}
-                placeholder="Image URL"
-                autoCapitalize="none"
-                className="border border-gray-200 rounded-2xl px-4 py-3 mt-2"
-              />
-              <Text className="text-xs text-gray-500 mt-1">
-                Add an image URL to update your public profile picture.
-              </Text>
-            </View>
-          )}
         </View>
 
         <View className="space-y-4">
@@ -228,7 +236,7 @@ export default function DoctorProfile() {
           <TouchableOpacity
             onPress={async () => {
               await logout();
-              router.replace("/doctor/login");
+              router.replace("/");
             }}
             className="rounded-3xl bg-red-600 py-4 items-center"
           >

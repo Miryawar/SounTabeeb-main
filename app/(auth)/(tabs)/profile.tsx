@@ -2,12 +2,12 @@ import { assets } from "@/assets/assets";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
-  Image,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 import { useUser } from "@/context/UserContext";
@@ -32,7 +32,7 @@ export default function Profile() {
                 ? { uri: profileImage }
                 : user?.image
                   ? { uri: user.image }
-                  : assets. profile_pic
+                  : assets.profile_pic
             }
             className=" w-32 h-32 rounded-full"
             resizeMode="contain"
