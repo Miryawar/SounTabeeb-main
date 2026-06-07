@@ -1,17 +1,16 @@
-﻿import { assets } from "@/assets/assets";
-import { useUser } from "@/context/UserContext";
+﻿import { useUser } from "@/context/UserContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -104,10 +103,25 @@ export default function ProfileDetails() {
           </View>
 
           <View className="items-center mb-6">
-            <Image
-              source={profileImage ? { uri: profileImage } : assets.profile_pic}
-              className="w-40 h-40 rounded-full"
-            />
+            {user?.role === "user" ? (
+              <View className="w-40 h-40 rounded-full bg-gray-200 items-center justify-center">
+                <Ionicons name="person" size={80} color="#6b7280" />
+              </View>
+            ) : profileImage ? (
+              <Image
+                source={{ uri: profileImage }}
+                className="w-40 h-40 rounded-full"
+              />
+            ) : user?.profilePicture ? (
+              <Image
+                source={{ uri: user.profilePicture }}
+                className="w-40 h-40 rounded-full"
+              />
+            ) : (
+              <View className="w-40 h-40 rounded-full bg-gray-200 items-center justify-center">
+                <Ionicons name="person" size={80} color="#6b7280" />
+              </View>
+            )}
             <Text className="text-2xl font-bold text-gray-800 mt-4">
               {userName || user?.name || "User"}
             </Text>

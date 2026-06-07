@@ -83,6 +83,9 @@ export default function Profile() {
     );
   };
 
+  const isPatient = user?.role === "user";
+  const hasProfileImage = !!profileImage || !!user?.profilePicture;
+
   return (
     <SafeAreaView style={{ padding: 16 }}>
       <View>
@@ -91,7 +94,7 @@ export default function Profile() {
         </Text>
 
         <View className="flex flex-row items-center gap-4 bg-[#fff] px-4 py-8 rounded-lg">
-          {profileImage || user?.profilePicture ? (
+          {hasProfileImage && !isPatient ? (
             <Image
               source={{ uri: profileImage || user?.profilePicture }}
               className="w-32 h-32 rounded-full"
@@ -114,37 +117,39 @@ export default function Profile() {
               {user?.phone || "No phone"}
             </Text>
 
-            <View className="mt-3 flex-row flex-wrap gap-2">
-              <TouchableOpacity
-                onPress={pickImage}
-                disabled={uploading}
-                className="bg-blue-500 px-4 py-2 rounded-lg"
-              >
-                {uploading ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text className="text-white font-semibold">
-                    Upload Profile Picture
-                  </Text>
-                )}
-              </TouchableOpacity>
-
-              {(profileImage || user?.profilePicture) && (
+            {!isPatient && (
+              <View className="mt-3 flex-row flex-wrap gap-2">
                 <TouchableOpacity
-                  onPress={handleRemoveProfilePicture}
+                  onPress={pickImage}
                   disabled={uploading}
-                  className="bg-red-500 px-4 py-2 rounded-lg"
+                  className="bg-blue-500 px-4 py-2 rounded-lg"
                 >
                   {uploading ? (
                     <ActivityIndicator size="small" color="white" />
                   ) : (
                     <Text className="text-white font-semibold">
-                      Delete Profile Picture
+                      Upload Profile Picture
                     </Text>
                   )}
                 </TouchableOpacity>
-              )}
-            </View>
+
+                {hasProfileImage && (
+                  <TouchableOpacity
+                    onPress={handleRemoveProfilePicture}
+                    disabled={uploading}
+                    className="bg-red-500 px-4 py-2 rounded-lg"
+                  >
+                    {uploading ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <Text className="text-white font-semibold">
+                        Delete Profile Picture
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
           </View>
         </View>
       </View>
