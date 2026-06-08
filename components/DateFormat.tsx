@@ -4,7 +4,13 @@ import { useGlobalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
-export default function DateFormat({ doctorId }: { doctorId?: string }) {
+export default function DateFormat({
+  doctorId,
+  paymentInfo,
+}: {
+  doctorId?: string;
+  paymentInfo?: any;
+}) {
   const params = useGlobalSearchParams();
   const routeDoctorId = Array.isArray(params.doctorId)
     ? params.doctorId[0]
@@ -152,10 +158,20 @@ export default function DateFormat({ doctorId }: { doctorId?: string }) {
             dateObj.setHours(hour, minute, 0, 0);
           }
           try {
-            const res = await apiPost("/api/appointments", {
+            if (!paymentInfo) {
+              return Alert.alert(
+                "Payment Required",
+                "Payment information is missing. Please complete the payment first.",
+              );
+            }
+            const body: any = {
               doctorId: finalDoctorId,
               date: dateObj.toISOString(),
-            });
+            };
+            if (paymentInfo) {
+              body.paymentInfo = paymentInfo;
+            }
+            const res = await apiPost("/api/appointments", body);
             const data = await res.json();
             if (!res.ok) return Alert.alert(data.message || "Booking failed");
             Alert.alert("Success", "Appointment booked");

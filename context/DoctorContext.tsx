@@ -8,6 +8,7 @@ export const DoctorProvider = ({ children }: any) => {
   const [doctor, setDoctor] = useState<any | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState<number>(Date.now());
 
   useEffect(() => {
     loadDoctor();
@@ -56,6 +57,8 @@ export const DoctorProvider = ({ children }: any) => {
 
     setLoading(false);
   };
+
+  const touchRefresh = () => setRefreshKey(Date.now());
 
   const login = async (email: string, password: string) => {
     if (!email || !password) {
@@ -163,6 +166,8 @@ export const DoctorProvider = ({ children }: any) => {
         doctor,
         token,
         loading,
+        refreshKey,
+        touchRefresh,
         login,
         logout,
         register,

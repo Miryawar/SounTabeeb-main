@@ -13,6 +13,10 @@ const appointmentSchema = new mongoose.Schema({
     enum: ["pending", "confirmed", "cancelled", "completed"],
     default: "pending",
   },
+  payment: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null,
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

@@ -5,6 +5,7 @@ export default function useAppointments() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const POLL_INTERVAL = 15000; // 15s
 
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
@@ -36,6 +37,10 @@ export default function useAppointments() {
 
   useEffect(() => {
     fetchAppointments();
+    const id = setInterval(() => {
+      fetchAppointments();
+    }, POLL_INTERVAL);
+    return () => clearInterval(id);
   }, [fetchAppointments]);
 
   return { appointments, loading, error, refresh: fetchAppointments };

@@ -1,4 +1,6 @@
 const Doctor = require("../models/Doctor");
+const Appointment = require("../models/Appointment");
+const User = require("../models/User");
 const fs = require("fs");
 const path = require("path");
 
@@ -20,6 +22,67 @@ exports.get = async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
+  }
+};
+
+exports.getMyAppointments = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user || user.role !== "doctor") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const doctor = await Doctor.findOne({ user: user._id });
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor profile not found" });
+    }
+
+    const appointments = await Appointment.find({ doctor: doctor._id })
+      .populate("user", "name email phone profilePicture")
+      .sort({ date: -1 });
+
+    res.json(appointments);
+  } catch (err) {
+    console.error("GET MY APPOINTMENTS ERROR:", err.message || err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getMyPatients = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user || user.role !== "doctor") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const doctor = await Doctor.findOne({ user: user._id });
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor profile not found" });
+    }
+
+    const appointments = await Appointment.find({ doctor: doctor._id }).populate(
+      "user",
+      "name email phone profilePicture",
+    );
+
+    const patientsMap = new Map();
+    appointments.forEach((appt) => {
+      if (appt.user) {
+        const userData = appt.user;
+        patientsMap.set(String(userData._id), {
+          id: userData._id,
+          name: userData.name,
+          email: userData.email,
+          phone: userData.phone || "",
+          profilePicture: userData.profilePicture || null,
+        });
+      }
+    });
+
+    res.json(Array.from(patientsMap.values()));
+  } catch (err) {
+    console.error("GET MY PATIENTS ERROR:", err.message || err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -45,7 +108,6 @@ exports.updateMe = async (req, res) => {
       });
       // also attach to user record if needed
       try {
-        const User = require("../models/User");
         await User.findByIdAndUpdate(user._id, { doctor: doctor._id });
       } catch (e) {
         console.warn(
@@ -90,7 +152,6 @@ exports.updateMe = async (req, res) => {
           doctor.profilePicture = url;
         }
       } else if (pp.startsWith("http") || pp.startsWith("/uploads/")) {
-        // already a URL
         doctor.profilePicture = pp;
       }
     }
