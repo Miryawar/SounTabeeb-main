@@ -60,10 +60,9 @@ exports.getMyPatients = async (req, res) => {
       return res.status(404).json({ message: "Doctor profile not found" });
     }
 
-    const appointments = await Appointment.find({ doctor: doctor._id }).populate(
-      "user",
-      "name email phone profilePicture",
-    );
+    const appointments = await Appointment.find({
+      doctor: doctor._id,
+    }).populate("user", "name email phone profilePicture");
 
     const patientsMap = new Map();
     appointments.forEach((appt) => {
@@ -126,33 +125,34 @@ exports.updateMe = async (req, res) => {
       "bio",
     ];
 
-    // Handle profile picture base64 upload (data URI)
-    if (
-      req.body.profilePicture &&
-      typeof req.body.profilePicture === "string"
-    ) {
+    // Handle profile picture updates and removal
+    if (req.body.profilePicture !== undefined) {
       const pp = req.body.profilePicture;
-      if (pp.startsWith("data:")) {
-        // decode and save file
-        const matches = pp.match(/^data:(image\/\w+);base64,(.+)$/);
-        if (matches) {
-          const mime = matches[1];
-          const ext = mime.split("/")[1] || "jpg";
-          const b64 = matches[2];
-          const filename = `${doctor._id || user._id}-${Date.now()}.${ext}`;
-          const uploadsDir = path.join(__dirname, "..", "uploads");
-          if (!fs.existsSync(uploadsDir))
-            fs.mkdirSync(uploadsDir, { recursive: true });
-          const filePath = path.join(uploadsDir, filename);
-          fs.writeFileSync(filePath, Buffer.from(b64, "base64"));
-          // build public URL
-          const protocol = req.protocol;
-          const host = req.get("host");
-          const url = `${protocol}://${host}/uploads/${filename}`;
-          doctor.profilePicture = url;
+      if (typeof pp === "string" && pp.trim() === "") {
+        doctor.profilePicture = null;
+      } else if (typeof pp === "string") {
+        if (pp.startsWith("data:")) {
+          // decode and save file
+          const matches = pp.match(/^data:(image\/\w+);base64,(.+)$/);
+          if (matches) {
+            const mime = matches[1];
+            const ext = mime.split("/")[1] || "jpg";
+            const b64 = matches[2];
+            const filename = `${doctor._id || user._id}-${Date.now()}.${ext}`;
+            const uploadsDir = path.join(__dirname, "..", "uploads");
+            if (!fs.existsSync(uploadsDir))
+              fs.mkdirSync(uploadsDir, { recursive: true });
+            const filePath = path.join(uploadsDir, filename);
+            fs.writeFileSync(filePath, Buffer.from(b64, "base64"));
+            // build public URL
+            const protocol = req.protocol;
+            const host = req.get("host");
+            const url = `${protocol}://${host}/uploads/${filename}`;
+            doctor.profilePicture = url;
+          }
+        } else if (pp.startsWith("http") || pp.startsWith("/uploads/")) {
+          doctor.profilePicture = pp;
         }
-      } else if (pp.startsWith("http") || pp.startsWith("/uploads/")) {
-        doctor.profilePicture = pp;
       }
     }
 

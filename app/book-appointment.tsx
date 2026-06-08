@@ -31,6 +31,10 @@ export default function BookAppointment() {
   const [paymentInfo, setPaymentInfo] = useState<any | null>(null);
   const [paymentAttempted, setPaymentAttempted] = useState(false);
 
+  const PAYMENT_PHONE = "6005647721";
+  const PAYMENT_UPI_ID = `${PAYMENT_PHONE}@upi`;
+  const PAYMENT_NAME = "SounTabeeb";
+
   if (loading) {
     return (
       <SafeAreaView className="flex-1 justify-center items-center">
@@ -118,8 +122,11 @@ export default function BookAppointment() {
                     You need to pay the consultation fee before choosing
                     date/time.
                   </Text>
-                  <Text className="text-lg font-semibold mb-4">
+                  <Text className="text-lg font-semibold mb-2">
                     Amount: Rs {selectedDoctor.fees}
+                  </Text>
+                  <Text className="text-gray-700 mb-4">
+                    Pay to phone number 6005647721 via UPI.
                   </Text>
 
                   {!paymentAttempted ? (
@@ -134,9 +141,9 @@ export default function BookAppointment() {
                         onPress={async () => {
                           setPaying(true);
                           try {
-                            // Use phone-based UPI VPA. Change suffix if your provider requires it (e.g. @paytm, @ybl)
-                            const upiId = "6005647721@upi"; // receiver phone number mapped to UPI VPA
-                            const payeeName = selectedDoctor.name || "Doctor";
+                            // Use phone-based UPI VPA. All payments go to the shared receiver.
+                            const upiId = PAYMENT_UPI_ID;
+                            const payeeName = PAYMENT_NAME;
                             const amount = String(selectedDoctor.fees || "0");
                             const txnRef = `sountabeeb_${Date.now()}`;
                             const tn = encodeURIComponent(
@@ -203,8 +210,8 @@ export default function BookAppointment() {
                         onPress={async () => {
                           setPaying(true);
                           try {
-                            const upiId = "6005647721@upi";
-                            const payeeName = selectedDoctor.name || "Doctor";
+                            const upiId = PAYMENT_UPI_ID;
+                            const payeeName = PAYMENT_NAME;
                             const amount = String(selectedDoctor.fees || "0");
                             const txnRef = `sountabeeb_${Date.now()}`;
                             const tn = encodeURIComponent(

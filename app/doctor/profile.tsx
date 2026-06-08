@@ -5,13 +5,14 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  Alert,
-  Image,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View, KeyboardAvoidingView
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -19,6 +20,7 @@ export default function DoctorProfile() {
   const router = useRouter();
   const { doctor, loading, logout, updateDoctorProfile } = useDoctor();
   const [editing, setEditing] = useState(false);
+  const [profilePictureRemoved, setProfilePictureRemoved] = useState(false);
   const [form, setForm] = useState({
     profilePicture: "",
     speciality: "",
@@ -42,6 +44,7 @@ export default function DoctorProfile() {
         experience: doctor.experience || "",
         bio: doctor.bio || "",
       });
+      setProfilePictureRemoved(false);
     }
   }, [doctor]);
 
@@ -79,10 +82,7 @@ export default function DoctorProfile() {
       : asset.uri;
     if (!imageData) return;
     setForm((prev) => ({ ...prev, profilePicture: imageData }));
-
-    if (!imageData) return;
-
-    setForm((prev) => ({ ...prev, profilePicture: imageData }));
+    setProfilePictureRemoved(false);
   };
 
   const handleSave = async () => {
@@ -123,152 +123,172 @@ export default function DoctorProfile() {
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
       <KeyboardAvoidingView behavior="padding">
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <Text className="text-3xl font-bold text-gray-900 mb-3">
-          Doctor Profile
-        </Text>
-        <Text className="text-gray-600 mb-6">
-          Manage your account details and clinic information.
-        </Text>
-
-        <View className="items-center mb-6">
-          <TouchableOpacity
-            onPress={handlePickImage}
-            activeOpacity={editing ? 0.7 : 1}
-          >
-            <Image
-              source={
-                form.profilePicture
-                  ? { uri: form.profilePicture }
-                  : doctor.profilePicture
-                    ? { uri: doctor.profilePicture }
-                    : assets.doclogo || assets.profile_pic
-              }
-              style={{ width: 140, height: 140, borderRadius: 70 }}
-            />
-          </TouchableOpacity>
-          {editing && (
-            <Text className="text-xs text-gray-500 mt-2">
-              Change profile picture
-            </Text>
-          )}
-          <Text className="text-xl font-semibold text-gray-900 mt-4">
-            {doctor.name}
+        <ScrollView contentContainerStyle={{ padding: 16 }}>
+          <Text className="text-3xl font-bold text-gray-900 mb-3">
+            Doctor Profile
           </Text>
-          <Text className="text-sm text-gray-500">{doctor.email}</Text>
-        </View>
+          <Text className="text-gray-600 mb-6">
+            Manage your account details and clinic information.
+          </Text>
 
-        <View className="rounded-3xl bg-white p-6 shadow-sm space-y-4 mb-6">
-          <View>
-            <Text className="text-sm text-gray-500">About</Text>
-            {editing ? (
-              <TextInput
-                value={form.bio}
-                onChangeText={(val) => handleChange("bio", val)}
-                placeholder="Write a short bio about your experience"
-                multiline
-                numberOfLines={4}
-                className="border border-gray-200 rounded-2xl px-4 py-3 mt-2 text-start"
-                style={{ minHeight: 100, textAlignVertical: "top" }}
+          <View className="items-center mb-6">
+            <TouchableOpacity
+              onPress={handlePickImage}
+              activeOpacity={editing ? 0.7 : 1}
+            >
+              <Image
+                source={
+                  profilePictureRemoved
+                    ? assets.doclogo || assets.profile_pic
+                    : form.profilePicture
+                      ? { uri: form.profilePicture }
+                      : doctor.profilePicture
+                        ? { uri: doctor.profilePicture }
+                        : assets.doclogo || assets.profile_pic
+                }
+                style={{ width: 140, height: 140, borderRadius: 70 }}
               />
-            ) : (
-              <Text className="text-gray-700 mt-2 leading-7">
-                {doctor.bio || "No bio added yet."}
-              </Text>
+            </TouchableOpacity>
+            {editing && (
+              <View className="items-center mt-2 space-y-2">
+                <Text className="text-xs text-gray-500">
+                  Tap image to change profile picture
+                </Text>
+                {(form.profilePicture || doctor.profilePicture) && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setForm((prev) => ({
+                        ...prev,
+                        profilePicture: "",
+                      }));
+                      setProfilePictureRemoved(true);
+                    }}
+                    className="rounded-full border border-gray-300 px-4 py-2 bg-gray-50"
+                  >
+                    <Text className="text-sm text-gray-700">
+                      Remove profile picture
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             )}
+            <Text className="text-xl font-semibold text-gray-900 mt-4">
+              {doctor.name}
+            </Text>
+            <Text className="text-sm text-gray-500">{doctor.email}</Text>
           </View>
 
-          <View>
-            <Text className="text-sm text-gray-500">Speciality</Text>
-            {editing ? (
-              <TextInput
-                value={form.speciality}
-                onChangeText={(val) => handleChange("speciality", val)}
-                placeholder="e.g., Cardiology"
-                className="border border-gray-200 rounded-2xl px-4 py-3 mt-2"
-              />
-            ) : (
-              <Text className="text-gray-700 mt-2">
-                {doctor.speciality || "Not set"}
-              </Text>
-            )}
+          <View className="rounded-3xl bg-white p-6 shadow-sm space-y-4 mb-6">
+            <View>
+              <Text className="text-sm text-gray-500">About</Text>
+              {editing ? (
+                <TextInput
+                  value={form.bio}
+                  onChangeText={(val) => handleChange("bio", val)}
+                  placeholder="Write a short bio about your experience"
+                  multiline
+                  numberOfLines={4}
+                  className="border border-gray-200 rounded-2xl px-4 py-3 mt-2 text-start"
+                  style={{ minHeight: 100, textAlignVertical: "top" }}
+                />
+              ) : (
+                <Text className="text-gray-700 mt-2 leading-7">
+                  {doctor.bio || "No bio added yet."}
+                </Text>
+              )}
+            </View>
+
+            <View>
+              <Text className="text-sm text-gray-500">Speciality</Text>
+              {editing ? (
+                <TextInput
+                  value={form.speciality}
+                  onChangeText={(val) => handleChange("speciality", val)}
+                  placeholder="e.g., Cardiology"
+                  className="border border-gray-200 rounded-2xl px-4 py-3 mt-2"
+                />
+              ) : (
+                <Text className="text-gray-700 mt-2">
+                  {doctor.speciality || "Not set"}
+                </Text>
+              )}
+            </View>
+
+            <View>
+              <Text className="text-sm text-gray-500">Qualification</Text>
+              {editing ? (
+                <TextInput
+                  value={form.qualification}
+                  onChangeText={(val) => handleChange("qualification", val)}
+                  placeholder="e.g., MBBS, MD"
+                  className="border border-gray-200 rounded-2xl px-4 py-3 mt-2"
+                />
+              ) : (
+                <Text className="text-gray-700 mt-2">
+                  {doctor.qualification || "Not set"}
+                </Text>
+              )}
+            </View>
+
+            <View>
+              <Text className="text-sm text-gray-500">Experience</Text>
+              {editing ? (
+                <TextInput
+                  value={form.experience}
+                  onChangeText={(val) => handleChange("experience", val)}
+                  placeholder="e.g., 10 years"
+                  className="border border-gray-200 rounded-2xl px-4 py-3 mt-2"
+                />
+              ) : (
+                <Text className="text-gray-700 mt-2">
+                  {doctor.experience || "Not set"}
+                </Text>
+              )}
+            </View>
           </View>
 
-          <View>
-            <Text className="text-sm text-gray-500">Qualification</Text>
+          <View className="space-y-4">
             {editing ? (
-              <TextInput
-                value={form.qualification}
-                onChangeText={(val) => handleChange("qualification", val)}
-                placeholder="e.g., MBBS, MD"
-                className="border border-gray-200 rounded-2xl px-4 py-3 mt-2"
-              />
+              <>
+                <TouchableOpacity
+                  onPress={handleSave}
+                  className="rounded-3xl bg-blue-600 py-4 items-center"
+                >
+                  <Text className="text-white font-semibold text-lg">
+                    Save Changes
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setEditing(false)}
+                  className="rounded-3xl bg-gray-100 py-4 items-center"
+                >
+                  <Text className="text-gray-700 font-semibold text-lg">
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+              </>
             ) : (
-              <Text className="text-gray-700 mt-2">
-                {doctor.qualification || "Not set"}
-              </Text>
-            )}
-          </View>
-
-          <View>
-            <Text className="text-sm text-gray-500">Experience</Text>
-            {editing ? (
-              <TextInput
-                value={form.experience}
-                onChangeText={(val) => handleChange("experience", val)}
-                placeholder="e.g., 10 years"
-                className="border border-gray-200 rounded-2xl px-4 py-3 mt-2"
-              />
-            ) : (
-              <Text className="text-gray-700 mt-2">
-                {doctor.experience || "Not set"}
-              </Text>
-            )}
-          </View>
-        </View>
-
-        <View className="space-y-4">
-          {editing ? (
-            <>
               <TouchableOpacity
-                onPress={handleSave}
+                onPress={() => setEditing(true)}
                 className="rounded-3xl bg-blue-600 py-4 items-center"
               >
                 <Text className="text-white font-semibold text-lg">
-                  Save Changes
+                  Edit Profile
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setEditing(false)}
-                className="rounded-3xl bg-gray-100 py-4 items-center"
-              >
-                <Text className="text-gray-700 font-semibold text-lg">
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <TouchableOpacity
-              onPress={() => setEditing(true)}
-              className="rounded-3xl bg-blue-600 py-4 items-center"
-            >
-              <Text className="text-white font-semibold text-lg">
-                Edit Profile
-              </Text>
-            </TouchableOpacity>
-          )}
+            )}
 
-          <TouchableOpacity
-            onPress={async () => {
-              await logout();
-              router.replace("/");
-            }}
-            className="rounded-3xl bg-red-600 py-4 items-center"
-          >
-            <Text className="text-white font-semibold text-lg">Logout</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            <TouchableOpacity
+              onPress={async () => {
+                await logout();
+                router.replace("/");
+              }}
+              className="rounded-3xl bg-red-600 py-4 items-center"
+            >
+              <Text className="text-white font-semibold text-lg">Logout</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
