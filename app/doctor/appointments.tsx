@@ -3,12 +3,12 @@ import { apiGet, apiPut } from "@/utils/api";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -98,7 +98,7 @@ export default function DoctorAppointments() {
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <Text className="text-3xl font-bold text-gray-900 mb-3">
-          Doctor Appointments
+          Appointments
         </Text>
         <Text className="text-gray-600 mb-6">
           Review and update your appointments.
