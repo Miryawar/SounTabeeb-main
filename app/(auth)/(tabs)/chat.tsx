@@ -17,89 +17,60 @@
 //     );
 // }
 
-import { apiGet, apiPost } from "@/utils/api";
+import { apiPost } from "@/utils/api";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
-    Image,
     SafeAreaView,
     ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function Chat() {
-  const params = useLocalSearchParams();
-  const doctorId = params.doctorId as string | undefined;
-  const doctorName = params.doctorName as string | undefined;
-  const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState("");
   const scrollRef = useRef<ScrollView | null>(null);
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [loadingConvos, setLoadingConvos] = useState(false);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [aiResponse, setAiResponse] = useState<string>("");
   const router = useRouter();
 
-  const fetchMessages = async () => {
-    if (!doctorId) return;
+  const fetchAiChat = async (query: string) => {
     setLoading(true);
     try {
-      const res = await apiGet(`/api/chats/${doctorId}`);
+      const res = await apiPost("/api/ai-chat", { text: query });
       if (res.ok) {
         const data = await res.json();
-        setMessages(data);
+        setAiResponse(data.answer || "");
+        setRecommendations(data.recommendations || []);
+      } else {
+        const error = await res.json();
+        console.warn("AI chat failed", error);
       }
     } catch (err) {
-      console.warn("Failed to fetch messages", err);
+      console.warn("AI chat failed", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchConversations = async () => {
-    setLoadingConvos(true);
-    try {
-      const res = await apiGet("/api/chats");
-      if (res.ok) {
-        const data = await res.json();
-        setConversations(data);
-      }
-    } catch (err) {
-      console.warn("Failed to fetch conversations", err);
-    } finally {
-      setLoadingConvos(false);
-    }
-  };
-
   useEffect(() => {
-    if (doctorId) {
-      fetchMessages();
-      const iv = setInterval(fetchMessages, 3000);
-      return () => clearInterval(iv);
-    } else {
-      fetchConversations();
-    }
-  }, [doctorId]);
+    // No doctor-specific chat behavior is used; this screen only handles AI assistant queries.
+  }, []);
 
   const handleSend = async () => {
-    if (!text.trim() || !doctorId) return;
+    if (!text.trim()) return;
     try {
-      const res = await apiPost(`/api/chats/${doctorId}`, {
-        text: text.trim(),
-      });
-      if (res.ok) {
-        const newMsg = await res.json();
-        setMessages((m) => [...m, newMsg]);
-        setText("");
-      }
+      await fetchAiChat(text.trim());
+      setText("");
     } catch (err) {
-      console.warn("Send failed", err);
+      console.warn("AI send failed", err);
     }
   };
 
@@ -107,144 +78,91 @@ export default function Chat() {
     <SafeAreaProvider>
       <LinearGradient colors={["#2563EB", "#DBEAFE"]} className="flex-1">
         <SafeAreaView className="flex-1">
-          {/* Chat Messages or Conversations */}
-          {!doctorId ? (
-            <ScrollView
-              className="flex-1 px-4 pt-6"
-              showsVerticalScrollIndicator={false}
-            >
-              {loadingConvos ? (
-                <ActivityIndicator size="large" color="#fff" />
-              ) : conversations.length === 0 ? (
-                <View className="flex-1 items-center justify-center py-20">
-                  <Text className="text-white text-lg font-semibold">
-                    No previous chats yet
-                  </Text>
-                  <Text className="text-white/70 mt-2 text-center px-6">
-                    Your recent chats with doctors will appear here once you
-                    start a conversation.
-                  </Text>
-                </View>
-              ) : (
-                conversations.map((conv) => (
-                  <TouchableOpacity
-                    key={conv.doctorId}
-                    onPress={() =>
-                      router.push(
-                        `/chat?doctorId=${conv.doctorId}&doctorName=${encodeURIComponent(
-                          conv.doctorName || "Doctor",
-                        )}`,
-                      )
-                    }
-                    className="flex-row items-center px-4 py-3 border-b border-white/10"
-                  >
-                    <Image
-                      source={{
-                        uri: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=300",
-                      }}
-                      className="w-12 h-12 rounded-full mr-4"
-                    />
-                    <View className="flex-1">
-                      <Text className="text-white font-semibold">
-                        {conv.doctorName || "Doctor"}
-                      </Text>
-                      <Text
-                        className="text-white/80 text-sm mt-1"
-                        numberOfLines={1}
-                      >
-                        {conv.lastMessage?.text}
-                      </Text>
-                    </View>
-                    <Text className="text-white/60 text-xs">
-                      {conv.lastMessage
-                        ? new Date(
-                            conv.lastMessage.createdAt,
-                          ).toLocaleTimeString()
-                        : ""}
+          {/* AI Chat Assistant */}
+          <ScrollView
+            ref={(r) => (scrollRef.current = r)}
+            className="flex-1 px-4 pt-6"
+            showsVerticalScrollIndicator={false}
+          >
+            {loading ? (
+              <ActivityIndicator size="large" color="#fff" />
+            ) : (
+              <View>
+                {aiResponse ? (
+                  <View className="mb-4 bg-white rounded-3xl px-4 py-3">
+                    <Text className="text-gray-800 font-semibold mb-3">
+                      AI Assistant Response
                     </Text>
-                  </TouchableOpacity>
-                ))
-              )}
-            </ScrollView>
-          ) : (
-            <ScrollView
-              ref={(r) => (scrollRef.current = r)}
-              className="flex-1 px-4 pt-6"
-              showsVerticalScrollIndicator={false}
-            >
-              {loading ? (
-                <ActivityIndicator size="large" color="#fff" />
-              ) : (
-                messages.map((message) => (
-                  <View
-                    key={message._id}
-                    className={`mb-4 flex ${
-                      message.senderRole === "user"
-                        ? "items-end"
-                        : "items-start"
-                    }`}
-                  >
-                    <View
-                      className={`max-w-[80%] px-4 py-3 rounded-3xl ${
-                        message.senderRole === "user"
-                          ? "bg-blue-600 rounded-br-md"
-                          : "bg-white rounded-bl-md"
-                      }`}
-                    >
-                      <Text
-                        className={`text-base ${
-                          message.senderRole === "user"
-                            ? "text-white"
-                            : "text-gray-800"
-                        }`}
-                      >
-                        {message.text}
-                      </Text>
-
-                      <Text
-                        className={`text-[10px] mt-2 text-right ${
-                          message.senderRole === "user"
-                            ? "text-blue-100"
-                            : "text-gray-400"
-                        }`}
-                      >
-                        {new Date(message.createdAt).toLocaleTimeString()}
-                      </Text>
-                    </View>
+                    <Text className="text-gray-700 text-base">
+                      {aiResponse}
+                    </Text>
                   </View>
-                ))
-              )}
-            </ScrollView>
-          )}
+                ) : (
+                  <View className="mb-4 bg-white rounded-3xl px-4 py-3">
+                    <Text className="text-gray-800 font-semibold mb-3">
+                      Ask about your symptoms or health concerns.
+                    </Text>
+                    <Text className="text-gray-700 text-base">
+                      The AI assistant will answer your questions and suggest
+                      suitable available doctors.
+                    </Text>
+                  </View>
+                )}
+
+                {recommendations.length > 0 && (
+                  <View className="mb-6">
+                    <Text className="text-white font-semibold text-lg mb-3">
+                      Recommended Doctors
+                    </Text>
+                    {recommendations.map((doc) => (
+                      <View
+                        key={doc._id}
+                        className="bg-white rounded-3xl p-4 mb-3"
+                      >
+                        <Text className="text-gray-800 font-bold text-lg">
+                          {doc.name}
+                        </Text>
+                        <Text className="text-gray-600">{doc.speciality}</Text>
+                        <Text className="text-gray-600">
+                          Experience: {doc.experience}
+                        </Text>
+                        <Text className="text-gray-600">
+                          Fee: Rs {doc.fees}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+          </ScrollView>
 
           {/* Bottom Input */}
-          {doctorId && (
-            <View className="px-4 py-4 bg-white rounded-t-3xl">
-              <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-2">
-                <TouchableOpacity>
-                  <Ionicons name="happy-outline" size={24} color="gray" />
-                </TouchableOpacity>
+          <View className="px-4 py-4 bg-white rounded-t-3xl">
+            <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-2">
+              <TouchableOpacity>
+                <Ionicons name="happy-outline" size={24} color="gray" />
+              </TouchableOpacity>
 
-                <TextInput
-                  placeholder="Type your message..."
-                  className="flex-1 px-3 text-base"
-                  value={text}
-                  onChangeText={setText}
-                />
+              <TextInput
+                placeholder="Ask the AI assistant about your symptoms..."
+                className="flex-1 px-3 text-base"
+                value={text}
+                onChangeText={setText}
+              />
 
-                <TouchableOpacity>
-                  <Ionicons name="attach" size={24} color="gray" />
-                </TouchableOpacity>
+              <TouchableOpacity>
+                <Ionicons name="attach" size={24} color="gray" />
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  onPress={handleSend}
-                  className="bg-blue-600 w-12 h-12 rounded-full items-center justify-center ml-3"
-                >
-                  <Ionicons name="send" size={20} color="white" />
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                onPress={handleSend}
+                className="bg-blue-600 w-12 h-12 rounded-full items-center justify-center ml-3"
+              >
+                <Ionicons name="send" size={20} color="white" />
+              </TouchableOpacity>
             </View>
-          )}
+          </View>
         </SafeAreaView>
       </LinearGradient>
     </SafeAreaProvider>

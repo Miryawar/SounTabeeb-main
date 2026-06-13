@@ -198,7 +198,7 @@ export default function BookAppointment() {
                           <ActivityIndicator color="#fff" />
                         ) : (
                           <Text className="text-white font-semibold">
-                            Pay Rs {selectedDoctor.fees} to Admin via UPI
+                            Pay Rs {selectedDoctor.fees} to SounTabeeb via UPI
                           </Text>
                         )}
                       </TouchableOpacity>
@@ -206,7 +206,7 @@ export default function BookAppointment() {
                   ) : (
                     <View className="w-full">
                       <Text className="text-gray-600 mb-4 text-center">
-                        Payment failed? Click "Try Again" to retry payment.
+                        Payment failed? Click `Try Again` to retry payment.
                       </Text>
                       <TouchableOpacity
                         onPress={async () => {

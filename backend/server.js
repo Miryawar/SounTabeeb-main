@@ -28,6 +28,7 @@ const startServer = async () => {
   app.use("/api/users", require("./routes/users"));
   app.use("/api/doctors", require("./routes/doctors"));
   app.use("/api/chats", require("./routes/chats"));
+  app.use("/api/ai-chat", require("./routes/aiChat"));
   app.use("/api/appointments", require("./routes/appointments"));
 
   app.get("/", (req, res) => res.send("SounTabeeb backend running"));

@@ -3,12 +3,12 @@ import useDoctors from "@/utils/useDoctors";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Image,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 const DoctorDetail = () => {
   const { id } = useLocalSearchParams();
@@ -81,17 +81,6 @@ const DoctorDetail = () => {
         className="mt-4 border border-gray-200 bg-blue-400 px-4 py-3 rounded-full items-center justify-center"
       >
         <Text className="text-white font-bold text-lg">Book Appointment</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() =>
-          router.push({
-            pathname: "/chat",
-            params: { doctorId: doctor._id, doctorName: doctor.name },
-          })
-        }
-        className="mt-4 border border-gray-200 bg-green-500 px-4 py-3 rounded-full items-center justify-center"
-      >
-        <Text className="text-white font-bold text-lg">Chat with Doctor</Text>
       </TouchableOpacity>
       <View className="my-6">
         <RelatedDoctors doctorId={doctor._id} specialty={doctor.speciality} />
