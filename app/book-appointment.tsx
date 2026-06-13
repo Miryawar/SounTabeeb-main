@@ -32,7 +32,7 @@ export default function BookAppointment() {
   const [paymentAttempted, setPaymentAttempted] = useState(false);
 
   const PAYMENT_PHONE = "6005647721";
-  const PAYMENT_UPI_ID = `${PAYMENT_PHONE}@upi`;
+  const PAYMENT_UPI_ID = `${PAYMENT_PHONE}@ybl`;
   const PAYMENT_NAME = "SounTabeeb";
 
   if (loading) {
@@ -117,16 +117,18 @@ export default function BookAppointment() {
             <Modal visible={showPayment} transparent animationType="slide">
               <View className="flex-1 justify-center items-center bg-black/40 px-6">
                 <View className="w-full bg-white rounded-2xl p-6">
-                  <Text className="text-xl font-bold mb-2">Pay Doctor Fee</Text>
+                  <Text className="text-xl font-bold mb-2">
+                    Pay Consultation Fee
+                  </Text>
                   <Text className="text-gray-700 mb-4">
-                    You need to pay the consultation fee before choosing
-                    date/time.
+                    You need to pay the consultation fee 
+                    before choosing date/time.
                   </Text>
                   <Text className="text-lg font-semibold mb-2">
                     Amount: Rs {selectedDoctor.fees}
                   </Text>
                   <Text className="text-gray-700 mb-4">
-                    Pay to phone number 6005647721 via UPI.
+                    Pay to SounTabeeb via UPI.
                   </Text>
 
                   {!paymentAttempted ? (
@@ -141,7 +143,7 @@ export default function BookAppointment() {
                         onPress={async () => {
                           setPaying(true);
                           try {
-                            // Use phone-based UPI VPA. All payments go to the shared receiver.
+                            // Use phone-based UPI VPA. Payment goes to the admin receiver.
                             const upiId = PAYMENT_UPI_ID;
                             const payeeName = PAYMENT_NAME;
                             const amount = String(selectedDoctor.fees || "0");
@@ -196,7 +198,7 @@ export default function BookAppointment() {
                           <ActivityIndicator color="#fff" />
                         ) : (
                           <Text className="text-white font-semibold">
-                            Pay Rs {selectedDoctor.fees} via UPI
+                            Pay Rs {selectedDoctor.fees} to Admin via UPI
                           </Text>
                         )}
                       </TouchableOpacity>
