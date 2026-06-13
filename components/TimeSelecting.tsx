@@ -1,12 +1,12 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { useRef, useState } from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 export default function TimeSelecting() {
-  const scrollRef = useRef(null);
+  const scrollRef = useRef<ScrollView | null>(null);
 
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [selectedTime, setSelectedTime] = useState(null);
+  const [selectedTime, setSelectedTime] = useState<Date | null>(null);
 
   // 📅 Generate next 30 days
   const dates = Array.from({ length: 30 }, (_, index) => {
@@ -14,9 +14,7 @@ export default function TimeSelecting() {
     date.setDate(date.getDate() + index);
 
     return {
-      day: date
-        .toLocaleDateString("en-US", { weekday: "short" })
-        .toUpperCase(),
+      day: date.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase(),
       date: date.getDate(),
       fullDate: date.toISOString(),
     };
@@ -70,7 +68,6 @@ export default function TimeSelecting() {
 
   return (
     <View className="mt-6 px-4">
-
       {/* TITLE */}
       <Text className="mb-4 text-gray-800 font-bold text-2xl">
         Book Appointment
@@ -78,7 +75,6 @@ export default function TimeSelecting() {
 
       {/* DATE HEADER */}
       <View className="flex-row items-center justify-between mb-4">
-
         <TouchableOpacity
           onPress={scrollLeft}
           className="bg-gray-100 p-3 rounded-full"
@@ -87,14 +83,11 @@ export default function TimeSelecting() {
         </TouchableOpacity>
 
         <Text className="text-xl font-bold text-gray-800">
-          {new Date(dates[selectedIndex].fullDate).toLocaleDateString(
-            "en-US",
-            {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            }
-          )}
+          {new Date(dates[selectedIndex].fullDate).toLocaleDateString("en-US", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })}
         </Text>
 
         <TouchableOpacity
@@ -117,9 +110,11 @@ export default function TimeSelecting() {
               className={`
                 w-20 h-24 rounded-2xl
                 items-center justify-center border
-                ${isSelected
-                  ? "bg-blue-600 border-blue-600"
-                  : "bg-white border-gray-200"}
+                ${
+                  isSelected
+                    ? "bg-blue-600 border-blue-600"
+                    : "bg-white border-gray-200"
+                }
               `}
             >
               <Text
@@ -149,8 +144,7 @@ export default function TimeSelecting() {
 
       <View className="flex-row flex-wrap gap-3">
         {timeSlots.map((time, index) => {
-          const isSelected =
-            selectedTime?.getTime() === time.getTime();
+          const isSelected = selectedTime?.getTime() === time.getTime();
 
           return (
             <TouchableOpacity
@@ -158,9 +152,11 @@ export default function TimeSelecting() {
               onPress={() => setSelectedTime(time)}
               className={`
                 px-4 py-3 rounded-xl border
-                ${isSelected
-                  ? "bg-blue-600 border-blue-600"
-                  : "bg-white border-gray-200"}
+                ${
+                  isSelected
+                    ? "bg-blue-600 border-blue-600"
+                    : "bg-white border-gray-200"
+                }
               `}
             >
               <Text
@@ -177,7 +173,6 @@ export default function TimeSelecting() {
           );
         })}
       </View>
-
     </View>
   );
 }
