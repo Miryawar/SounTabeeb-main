@@ -24,7 +24,7 @@ export function useDoctors() {
               degree: d.degree || d.qualification || "MBBS",
               experience: d.experience || d.years || "1 Year",
               about: d.bio || d.about || "",
-              fees: d.fees || d.fee || 300,
+              fees: d.fees || d.fee || 5,
               // backend may provide an `available` flag; default to true when missing
               available: typeof d.available === "boolean" ? d.available : true,
               image: d.profilePicture

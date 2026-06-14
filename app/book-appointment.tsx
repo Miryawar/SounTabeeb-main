@@ -4,15 +4,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useGlobalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Linking,
-    Modal,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Linking,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -121,8 +121,8 @@ export default function BookAppointment() {
                     Pay Consultation Fee
                   </Text>
                   <Text className="text-gray-700 mb-4">
-                    You need to pay the consultation fee 
-                    before choosing date/time.
+                    You need to pay the consultation fee before choosing
+                    date/time.
                   </Text>
                   <Text className="text-lg font-semibold mb-2">
                     Amount: Rs {selectedDoctor.fees}
@@ -198,7 +198,7 @@ export default function BookAppointment() {
                           <ActivityIndicator color="#fff" />
                         ) : (
                           <Text className="text-white font-semibold">
-                            Pay Rs {selectedDoctor.fees} to SounTabeeb via UPI
+                            Pay to SounTabeeb
                           </Text>
                         )}
                       </TouchableOpacity>
