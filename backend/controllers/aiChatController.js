@@ -1,10 +1,8 @@
 const Doctor = require("../models/Doctor");
 
-const AI_PROVIDER = process.env.AI_PROVIDER?.trim().toLowerCase() || "openai";
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY?.trim() || null;
-const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-3.5-turbo";
+const AI_PROVIDER = process.env.AI_PROVIDER?.trim().toLowerCase() || "gemini";
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY?.trim() || null;
-const GOOGLE_GEMINI_MODEL = process.env.GOOGLE_GEMINI_MODEL || "gemini-1.0";
+const GOOGLE_GEMINI_MODEL = process.env.GOOGLE_GEMINI_MODEL || "gemini-2.5-pro";
 
 const specialityHints = [
   {
@@ -37,55 +35,31 @@ const specialityHints = [
   },
 ];
 
-const fetchFn =
-  typeof fetch !== "undefined"
-    ? fetch.bind(global)
-    : (...args) =>
-        import("node-fetch").then(({ default: fetch }) => fetch(...args));
-
-async function askOpenAI(question) {
-  if (!OPENAI_API_KEY) {
-    console.warn("OpenAI provider skipped: OPENAI_API_KEY is not configured.");
-    return null;
+let genaiClient = null;
+const { generateWithRetries, breakerAllows } = require("../utils/geminiClient");
+function normalizeModelName(model) {
+  if (!model || typeof model !== "string") {
+    return "models/gemini-2.5-flash";
   }
 
-  const url = "https://api.openai.com/v1/chat/completions";
-  const messages = [
-    {
-      role: "system",
-      content:
-        "You are a friendly medical assistant for a healthcare booking app. Answer the user's health questions directly and clearly. Avoid recommending specific doctors unless the user explicitly asks for a doctor recommendation or asks how to book an appointment.",
-    },
-    {
-      role: "user",
-      content: question,
-    },
-  ];
-
-  const response = await fetchFn(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: OPENAI_MODEL,
-      messages,
-      temperature: 0.5,
-      max_tokens: 500,
-      top_p: 0.95,
-      frequency_penalty: 0,
-      presence_penalty: 0,
-    }),
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    console.error("OpenAI provider response error", response.status, data);
-    return null;
+  const normalized = model.trim();
+  if (normalized === "gemini-1.0") {
+    return "models/gemini-2.5-flash";
   }
+  if (normalized.startsWith("models/")) {
+    return normalized;
+  }
+  return `models/${normalized}`;
+}
 
-  return data?.choices?.[0]?.message?.content?.trim() || null;
+try {
+  // lazy-require the official Google GenAI SDK and create a client if key exists
+  const { GoogleGenAI } = require("@google/genai");
+  if (GOOGLE_API_KEY)
+    genaiClient = new GoogleGenAI({ apiKey: GOOGLE_API_KEY, apiVersion: "v1" });
+} catch (e) {
+  // SDK not installed or failed to load; we'll fall back to fetch-based calls (not recommended)
+  genaiClient = null;
 }
 
 async function askGemini(question) {
@@ -94,60 +68,100 @@ async function askGemini(question) {
     return null;
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta2/models/${GOOGLE_GEMINI_MODEL}:generate?key=${GOOGLE_API_KEY}`;
-  const response = await fetchFn(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      prompt: {
-        text:
-          "You are a friendly medical assistant for a healthcare booking app. Answer the user's health questions directly and clearly. Avoid recommending specific doctors unless the user explicitly asks for a doctor recommendation or asks how to book an appointment.\n\nUser question: " +
-          question,
-      },
-      temperature: 0.5,
-      maxOutputTokens: 500,
-      topP: 0.95,
-      candidateCount: 1,
-    }),
-  });
+  const prompt =
+    "You are a friendly medical assistant for a healthcare booking app. Answer the user's health questions directly and clearly. Avoid recommending specific doctors unless the user explicitly asks for a doctor recommendation or asks how to book an appointment.\n\nUser question: " +
+    question;
 
-  const data = await response.json();
-  if (!response.ok) {
-    console.error("Gemini provider response error", response.status, data);
-    return null;
+  const modelName = normalizeModelName(GOOGLE_GEMINI_MODEL);
+
+  // Prefer the official SDK which handles payload shape and errors
+  if (genaiClient) {
+    try {
+      const fallbackModelEnv =
+        process.env.GOOGLE_GEMINI_FALLBACK || "gemini-2.5-flash";
+      const fallbackModel = normalizeModelName(fallbackModelEnv);
+
+      const aiRespText = await generateWithRetries({
+        ai: genaiClient,
+        model: modelName,
+        contents: prompt,
+        maxRetries: parseInt(process.env.GENERATE_MAX_RETRIES || "4", 10),
+        baseDelay: parseInt(process.env.GENERATE_BASE_DELAY_MS || "400", 10),
+        fallbackModel,
+      });
+
+      if (!aiRespText || String(aiRespText).trim().length === 0) {
+        console.warn("Gemini returned empty answer via SDK after retries");
+        return null;
+      }
+      return String(aiRespText).trim();
+    } catch (e) {
+      console.error(
+        "Gemini SDK error after retries:",
+        e?.status || e?.code || "",
+        e?.message || e?.toString(),
+      );
+      // if circuit is open, surface as transient by returning null so fallback paths run
+      return null;
+    }
   }
 
-  return data?.candidates?.[0]?.output?.trim() || null;
+  // As a fallback (shouldn't normally run) attempt the HTTP v1 endpoint with a safe payload
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${GOOGLE_API_KEY}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: prompt }),
+    });
+
+    const text = await response.text();
+    if (!response.ok) {
+      console.error(
+        "Gemini provider response error",
+        response.status,
+        text.slice(0, 1000),
+      );
+      return null;
+    }
+
+    // try parse JSON if possible
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseErr) {
+      console.error(
+        "Gemini JSON parse error",
+        parseErr.message,
+        `Status: ${response.status}`,
+      );
+      return null;
+    }
+
+    const out =
+      data?.candidates?.[0]?.content ||
+      data?.output?.[0]?.content ||
+      data?.text ||
+      null;
+    if (!out) return null;
+    return String(out).trim();
+  } catch (err) {
+    console.error("Gemini request failed:", err.message || err);
+    return null;
+  }
 }
 
 async function askProvider(question) {
-  if (AI_PROVIDER === "gemini") {
-    const geminiAnswer = await askGemini(question);
-    if (geminiAnswer) {
-      return geminiAnswer;
-    }
-    if (OPENAI_API_KEY) {
-      console.warn("Gemini unavailable, falling back to OpenAI.");
-      return await askOpenAI(question);
-    }
+  try {
+    return await askGemini(question);
+  } catch (err) {
+    console.error("Gemini provider error:", err.message || err);
     return null;
   }
-
-  const openAiAnswer = await askOpenAI(question);
-  if (openAiAnswer) {
-    return openAiAnswer;
-  }
-  if (GOOGLE_API_KEY) {
-    console.warn("OpenAI unavailable, falling back to Gemini.");
-    return await askGemini(question);
-  }
-  return null;
 }
 
 function providerKeyAvailable() {
-  return AI_PROVIDER === "gemini" ? !!GOOGLE_API_KEY : !!OPENAI_API_KEY;
+  return !!GOOGLE_API_KEY;
 }
 
 function localAnswer(query) {
@@ -373,28 +387,27 @@ exports.handleAiChat = async (req, res) => {
 
     if (providerKeyAvailable()) {
       providerAttempted = true;
-      providerUsed = AI_PROVIDER;
+      providerUsed = "gemini";
       try {
         answer = await askProvider(text);
+        if (!answer) {
+          // AI provider attempted but returned no usable answer
+          console.warn("AI provider attempted but returned no answer");
+          const fallbackText = localAnswer(text);
+          // Log and return 503 so clients know the AI service is temporarily unavailable
+          return res.status(503).json({
+            message:
+              "AI service temporarily unavailable. Returning fallback guidance.",
+            fallback: fallbackText,
+            providerAttempted: true,
+            providerUsed,
+          });
+        }
       } catch (providerError) {
-        console.error("AI provider error", providerError);
-      }
-    } else if (OPENAI_API_KEY || GOOGLE_API_KEY) {
-      providerAttempted = true;
-      if (OPENAI_API_KEY) {
-        providerUsed = "openai";
-        try {
-          answer = await askOpenAI(text);
-        } catch (providerError) {
-          console.error("OpenAI provider error", providerError);
-        }
-      } else if (GOOGLE_API_KEY) {
-        providerUsed = "gemini";
-        try {
-          answer = await askGemini(text);
-        } catch (providerError) {
-          console.error("Gemini provider error", providerError);
-        }
+        console.error(
+          "AI provider error:",
+          providerError.message || providerError,
+        );
       }
     }
 
@@ -425,3 +438,7 @@ exports.handleAiChat = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+// expose askProvider for other controllers to reuse (returns AI answer or null)
+exports.askProvider = askProvider;
+exports.providerKeyAvailable = providerKeyAvailable;

@@ -8,7 +8,7 @@ async function getToken(key = "token") {
   return await AsyncStorage.getItem(key);
 }
 
-function buildHeaders(token?: string) {
+function buildHeaders(token?: string | null) {
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),

@@ -72,12 +72,7 @@ const DoctorDetail = () => {
         </View>
       </View>
       <TouchableOpacity
-        onPress={() =>
-          router.push({
-            pathname: "/book-appointment",
-            params: { id: id?.toString() },
-          })
-        }
+        onPress={() => router.push(`/book-appointment?id=${id?.toString()}`)}
         className="mt-4 border border-gray-200 bg-blue-400 px-4 py-3 rounded-full items-center justify-center"
       >
         <Text className="text-white font-bold text-lg">Book Appointment</Text>
