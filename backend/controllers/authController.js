@@ -2,9 +2,15 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Doctor = require("../models/Doctor");
+const crypto = require("crypto");
 
+const EMAIL_CODE_TTL_MS = 1000 * 60 * 60 * 24; // 24h
+const PHONE_CODE_TTL_MS = 1000 * 60 * 10; // 10min
+
+const PendingUser = require("../models/PendingUser");
+
+// Start registration: create a PendingUser and send tokens. Account not created yet.
 exports.register = async (req, res) => {
-  console.log("REGISTER BODY:", req.body);
   const {
     name,
     email,
@@ -19,77 +25,58 @@ exports.register = async (req, res) => {
     licenseNumber,
   } = req.body;
   try {
-    let user = await User.findOne({ email });
-    if (user) return res.status(400).json({ message: "User already exists" });
+    if (!email || !phone || !password || !name)
+      return res
+        .status(400)
+        .json({ message: "name,email,phone,password required" });
+
+    // Ensure no existing user
+    let existing = await User.findOne({ $or: [{ email }, { phone }] });
+    if (existing)
+      return res.status(400).json({ message: "User already exists" });
+
+    // ensure no pending registration
+    let pending = await PendingUser.findOne({ $or: [{ email }, { phone }] });
+    if (pending)
+      return res.status(400).json({
+        message: "Pending registration exists for this email or phone",
+      });
+
     const salt = await bcrypt.genSalt(10);
     const hashed = await bcrypt.hash(password, salt);
 
-    const userData = {
+    const emailCode = String(Math.floor(100000 + Math.random() * 900000));
+    const phoneCode = String(Math.floor(100000 + Math.random() * 900000));
+
+    const pendingData = {
       name,
       email,
-      password: hashed,
       phone,
+      passwordHash: hashed,
       role: role || "user",
+      profilePicture,
+      bio,
+      speciality,
+      qualification,
+      experience,
+      licenseNumber,
+      emailVerificationCode: emailCode,
+      emailVerificationExpires: new Date(Date.now() + EMAIL_CODE_TTL_MS),
+      phoneVerificationCode: phoneCode,
+      phoneVerificationExpires: new Date(Date.now() + PHONE_CODE_TTL_MS),
     };
 
-    user = new User(userData);
-    await user.save();
+    pending = new PendingUser(pendingData);
+    await pending.save();
 
-    let doctorProfile = null;
-    if (role === "doctor") {
-      const doctorData = {
-        user: user._id,
-        name,
-        email,
-        profilePicture: profilePicture || "",
-        bio: bio || "",
-        speciality: speciality || "",
-        qualification: qualification || "",
-        experience: experience || "",
-        licenseNumber: licenseNumber || "",
-      };
-      doctorProfile = await Doctor.create(doctorData);
-      user.doctor = doctorProfile._id;
-      await user.save();
-    }
-
-    const payload = { id: user._id };
-    const token = jwt.sign(payload, process.env.JWT_SECRET || "secret", {
-      expiresIn: "7d",
+    // return pending id and tokens for testing (in prod send email/SMS)
+    res.json({
+      pendingId: pending._id,
+      verification: { emailCode, phoneCode },
     });
-
-    const responseUser = {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone || "",
-      dob: user.dob || "",
-      address: user.address || "",
-      city: user.city || "",
-      state: user.state || "",
-      district: user.district || "",
-      pincode: user.pincode || "",
-      gender: user.gender || "",
-      role: user.role || "user",
-    };
-
-    if (doctorProfile) {
-      responseUser.profilePicture = doctorProfile.profilePicture || "";
-      responseUser.bio = doctorProfile.bio || "";
-      responseUser.speciality = doctorProfile.speciality || "";
-      responseUser.qualification = doctorProfile.qualification || "";
-      responseUser.experience = doctorProfile.experience || "";
-      responseUser.licenseNumber = doctorProfile.licenseNumber || "";
-    }
-
-    res.json({ token, user: responseUser });
   } catch (err) {
-    console.error("REGISTER ERROR:", err);
-
-    res.status(500).json({
-      message: err.message,
-      // stack: err.stack
-    });
+    console.error("REGISTER INIT ERROR:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -132,10 +119,270 @@ exports.login = async (req, res) => {
         qualification: doctorProfile?.qualification || "",
         experience: doctorProfile?.experience || "",
         licenseNumber: doctorProfile?.licenseNumber || "",
+        emailVerified: user.emailVerified || false,
+        phoneVerified: user.phoneVerified || false,
       },
     });
   } catch (err) {
     console.error(err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// send email verification code (simulate sending)
+exports.sendEmailVerification = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "email required" });
+    // support pending or existing user
+    let target = await PendingUser.findOne({ email });
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    if (target) {
+      target.emailVerificationCode = code;
+      target.emailVerificationExpires = new Date(
+        Date.now() + EMAIL_CODE_TTL_MS,
+      );
+      await target.save();
+      return res.json({
+        message: "Verification code generated for pending registration",
+        code,
+      });
+    }
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    user.emailVerificationCode = code;
+    user.emailVerificationExpires = new Date(Date.now() + EMAIL_CODE_TTL_MS);
+    await user.save();
+    // in prod: send email. Here return code for testing.
+    res.json({ message: "Verification code generated", code });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.verifyEmail = async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    if (!email || !code)
+      return res.status(400).json({ message: "email and code required" });
+    // try existing user first
+    let user = await User.findOne({ email });
+    if (user) {
+      if (
+        !user.emailVerificationCode ||
+        user.emailVerificationCode !== String(code)
+      )
+        return res.status(400).json({ message: "Invalid code" });
+      if (
+        user.emailVerificationExpires &&
+        user.emailVerificationExpires < new Date()
+      )
+        return res.status(400).json({ message: "Code expired" });
+      user.emailVerified = true;
+      user.emailVerificationCode = null;
+      user.emailVerificationExpires = null;
+      await user.save();
+      return res.json({ message: "Email verified" });
+    }
+    // try pending registration
+    const pending = await PendingUser.findOne({ email });
+    if (!pending) return res.status(404).json({ message: "User not found" });
+    if (
+      !pending.emailVerificationCode ||
+      pending.emailVerificationCode !== String(code)
+    )
+      return res.status(400).json({ message: "Invalid code" });
+    if (
+      pending.emailVerificationExpires &&
+      pending.emailVerificationExpires < new Date()
+    )
+      return res.status(400).json({ message: "Code expired" });
+    // clear code on pending (client can call complete-register with pendingId)
+    pending.emailVerificationCode = null;
+    pending.emailVerificationExpires = null;
+    await pending.save();
+    res.json({ message: "Email verified for pending registration" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// phone code
+exports.sendPhoneCode = async (req, res) => {
+  try {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ message: "phone required" });
+    // support pending or existing user
+    let target = await PendingUser.findOne({ phone });
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    if (target) {
+      target.phoneVerificationCode = code;
+      target.phoneVerificationExpires = new Date(
+        Date.now() + PHONE_CODE_TTL_MS,
+      );
+      await target.save();
+      return res.json({
+        message: "Phone code generated for pending registration",
+        code,
+      });
+    }
+    // optionally validate phone format
+    const user = await User.findOne({ phone });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    user.phoneVerificationCode = code;
+    user.phoneVerificationExpires = new Date(Date.now() + PHONE_CODE_TTL_MS);
+    await user.save();
+    // in prod: send SMS. Here return code for testing.
+    res.json({ message: "Phone code generated", code });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.verifyPhone = async (req, res) => {
+  try {
+    const { phone, code } = req.body;
+    if (!phone || !code)
+      return res.status(400).json({ message: "phone and code required" });
+    // try existing user first
+    let user = await User.findOne({ phone });
+    if (user) {
+      if (
+        !user.phoneVerificationCode ||
+        user.phoneVerificationCode !== String(code)
+      )
+        return res.status(400).json({ message: "Invalid code" });
+      if (
+        user.phoneVerificationExpires &&
+        user.phoneVerificationExpires < new Date()
+      )
+        return res.status(400).json({ message: "Code expired" });
+      user.phoneVerified = true;
+      user.phoneVerificationCode = null;
+      user.phoneVerificationExpires = null;
+      await user.save();
+      return res.json({ message: "Phone verified" });
+    }
+    // try pending
+    const pending = await PendingUser.findOne({ phone });
+    if (!pending) return res.status(404).json({ message: "User not found" });
+    if (
+      !pending.phoneVerificationCode ||
+      pending.phoneVerificationCode !== String(code)
+    )
+      return res.status(400).json({ message: "Invalid code" });
+    if (
+      pending.phoneVerificationExpires &&
+      pending.phoneVerificationExpires < new Date()
+    )
+      return res.status(400).json({ message: "Code expired" });
+    pending.phoneVerificationCode = null;
+    pending.phoneVerificationExpires = null;
+    await pending.save();
+    res.json({ message: "Phone verified for pending registration" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Complete registration: verify tokens from pending and create actual User
+exports.completeRegister = async (req, res) => {
+  try {
+    const { pendingId, emailCode, phoneCode } = req.body;
+    if (!pendingId)
+      return res.status(400).json({ message: "pendingId required" });
+    const pending = await PendingUser.findById(pendingId);
+    if (!pending)
+      return res
+        .status(404)
+        .json({ message: "Pending registration not found" });
+
+    // check codes (either emailCode or phoneCode must match)
+    if (emailCode) {
+      if (pending.emailVerificationCode !== String(emailCode))
+        return res.status(400).json({ message: "Invalid email code" });
+      if (
+        pending.emailVerificationExpires &&
+        pending.emailVerificationExpires < new Date()
+      )
+        return res.status(400).json({ message: "Email code expired" });
+    }
+    if (phoneCode) {
+      if (pending.phoneVerificationCode !== String(phoneCode))
+        return res.status(400).json({ message: "Invalid phone code" });
+      if (
+        pending.phoneVerificationExpires &&
+        pending.phoneVerificationExpires < new Date()
+      )
+        return res.status(400).json({ message: "Phone code expired" });
+    }
+
+    // Create actual User
+    // Ensure no race with existing users
+    const existing = await User.findOne({
+      $or: [{ email: pending.email }, { phone: pending.phone }],
+    });
+    if (existing) {
+      // cleanup pending
+      await PendingUser.findByIdAndDelete(pending._id);
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const userData = {
+      name: pending.name,
+      email: pending.email,
+      phone: pending.phone,
+      password: pending.passwordHash,
+      role: pending.role || "user",
+      emailVerified: !!emailCode,
+      phoneVerified: !!phoneCode,
+    };
+
+    const user = new User(userData);
+    await user.save();
+
+    let doctorProfile = null;
+    if (pending.role === "doctor") {
+      const doctorData = {
+        user: user._id,
+        name: pending.name,
+        email: pending.email,
+        profilePicture: pending.profilePicture || "",
+        bio: pending.bio || "",
+        speciality: pending.speciality || "",
+        qualification: pending.qualification || "",
+        experience: pending.experience || "",
+        licenseNumber: pending.licenseNumber || "",
+      };
+      doctorProfile = await Doctor.create(doctorData);
+      user.doctor = doctorProfile._id;
+      await user.save();
+    }
+
+    // remove pending
+    await PendingUser.findByIdAndDelete(pending._id);
+
+    const payload = { id: user._id };
+    const token = jwt.sign(payload, process.env.JWT_SECRET || "secret", {
+      expiresIn: "7d",
+    });
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    console.error("COMPLETE REGISTER ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 };

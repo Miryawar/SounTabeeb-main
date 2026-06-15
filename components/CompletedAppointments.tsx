@@ -65,12 +65,14 @@ export default function CompletedAppointments() {
               year: "numeric",
             })
           : "--";
-        const formattedTime = appointmentDate
-          ? appointmentDate.toLocaleTimeString("en-IN", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          : "--";
+        const formattedTime = item.slot
+          ? item.slot
+          : appointmentDate
+            ? appointmentDate.toLocaleTimeString("en-IN", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "--";
 
         return (
           <View

@@ -2,10 +2,12 @@ const Appointment = require("../models/Appointment");
 const Doctor = require("../models/Doctor");
 
 exports.create = async (req, res) => {
-  const { doctorId, date, paymentInfo } = req.body;
+  const { doctorId, date, slot, paymentInfo } = req.body;
   try {
-    if (!doctorId || !date) {
-      return res.status(400).json({ message: "Doctor and date are required" });
+    if (!doctorId || !date || !slot) {
+      return res
+        .status(400)
+        .json({ message: "Doctor, date and slot are required" });
     }
 
     // Require payment information for new appointments
@@ -21,10 +23,12 @@ exports.create = async (req, res) => {
       });
     }
 
+    // Normalize date to day-only (midnight) so slots are compared by day and slot id
     const appointmentDate = new Date(date);
     if (Number.isNaN(appointmentDate.getTime())) {
       return res.status(400).json({ message: "Invalid appointment date" });
     }
+    appointmentDate.setHours(0, 0, 0, 0);
 
     // Accept either a Doctor._id or a User._id for doctorId
     let doctor = await Doctor.findById(doctorId);
@@ -34,9 +38,11 @@ exports.create = async (req, res) => {
     }
     if (!doctor) return res.status(404).json({ message: "Doctor not found" });
 
+    // Check for existing appointment for this doctor/day/slot
     const existing = await Appointment.findOne({
       doctor: doctor._id,
       date: appointmentDate,
+      slot,
       status: { $in: ["pending", "confirmed"] },
     });
     if (existing) {
@@ -49,12 +55,23 @@ exports.create = async (req, res) => {
       user: req.user._id,
       doctor: doctor._id,
       date: appointmentDate,
+      slot,
       status: "confirmed",
       payment: paymentInfo,
     };
 
     const appt = new Appointment(apptData);
-    await appt.save();
+    try {
+      await appt.save();
+    } catch (err) {
+      // Handle unique index duplicate key (race condition)
+      if (err && err.code === 11000) {
+        return res
+          .status(400)
+          .json({ message: "This slot has already been booked" });
+      }
+      throw err;
+    }
     await appt.populate("doctor");
     res.json(appt);
   } catch (err) {

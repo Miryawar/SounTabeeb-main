@@ -3,12 +3,12 @@ import { apiGet, apiPut } from "@/utils/api";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -139,13 +139,11 @@ export default function DoctorAppointments() {
                       </Text>
                       <Text className="text-gray-600 mt-2">
                         {appointmentDate
-                          ? appointmentDate.toLocaleString("en-IN", {
+                          ? `${appointmentDate.toLocaleDateString("en-IN", {
                               day: "numeric",
                               month: "short",
                               year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
+                            })}${item.slot ? ` • ${item.slot}` : ""}`
                           : "Date not set"}
                       </Text>
                       <Text className="text-gray-600 mt-1">
@@ -205,13 +203,11 @@ export default function DoctorAppointments() {
                       </Text>
                       <Text className="text-gray-600 mt-2">
                         {appointmentDate
-                          ? appointmentDate.toLocaleString("en-IN", {
+                          ? `${appointmentDate.toLocaleDateString("en-IN", {
                               day: "numeric",
                               month: "short",
                               year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
+                            })}${item.slot ? ` • ${item.slot}` : ""}`
                           : "Date not set"}
                       </Text>
                       <Text className="text-gray-600 mt-1">

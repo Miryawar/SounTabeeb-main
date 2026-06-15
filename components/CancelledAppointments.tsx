@@ -1,7 +1,7 @@
-import { View, Text, Image } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import useAppointments from "@/utils/useAppointments";
 import { assets } from "@/assets/assets";
+import useAppointments from "@/utils/useAppointments";
+import { Ionicons } from "@expo/vector-icons";
+import { Image, Text, View } from "react-native";
 
 export default function CancelledAppointments() {
   const { appointments, loading, error } = useAppointments();
@@ -28,7 +28,9 @@ export default function CancelledAppointments() {
   if (!cancelledAppointments.length) {
     return (
       <View className="flex-1 items-center justify-center py-20 px-6">
-        <Text className="text-xl font-bold text-gray-700 mb-2">No cancelled appointments</Text>
+        <Text className="text-xl font-bold text-gray-700 mb-2">
+          No cancelled appointments
+        </Text>
         <Text className="text-center text-gray-500">
           You do not have any cancelled appointments.
         </Text>
@@ -41,7 +43,9 @@ export default function CancelledAppointments() {
       <View className="flex flex-row items-center justify-center gap-4 bg-red-100 p-4 mb-8 rounded-2xl">
         <Ionicons name="close" color={"red"} size={32} />
         <View className="flex-1">
-          <Text className="text-xl font-bold text-gray-700">Your Cancelled Appointments</Text>
+          <Text className="text-xl font-bold text-gray-700">
+            Your Cancelled Appointments
+          </Text>
           <Text className="text-sm font-medium text-gray-600">
             These appointments were cancelled by you or the doctor.
           </Text>
@@ -61,15 +65,20 @@ export default function CancelledAppointments() {
               year: "numeric",
             })
           : "--";
-        const formattedTime = appointmentDate
-          ? appointmentDate.toLocaleTimeString("en-IN", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          : "--";
+        const formattedTime = item.slot
+          ? item.slot
+          : appointmentDate
+            ? appointmentDate.toLocaleTimeString("en-IN", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "--";
 
         return (
-          <View key={item._id} className="bg-white rounded-2xl mb-8 px-4 py-6 border border-gray-100">
+          <View
+            key={item._id}
+            className="bg-white rounded-2xl mb-8 px-4 py-6 border border-gray-100"
+          >
             <View className="flex flex-row items-center gap-4">
               <Image
                 source={imageSource}
@@ -77,14 +86,22 @@ export default function CancelledAppointments() {
                 resizeMode="contain"
               />
               <View className="flex-1">
-                <Text className="text-gray-800 text-xl font-bold mb-1">{doctor.name || "Doctor"}</Text>
-                <Text className="text-gray-600 font-medium mb-1">{doctor.speciality || "Speciality"}</Text>
-                <Text className="text-gray-500">{formattedDate} • {formattedTime}</Text>
+                <Text className="text-gray-800 text-xl font-bold mb-1">
+                  {doctor.name || "Doctor"}
+                </Text>
+                <Text className="text-gray-600 font-medium mb-1">
+                  {doctor.speciality || "Speciality"}
+                </Text>
+                <Text className="text-gray-500">
+                  {formattedDate} • {formattedTime}
+                </Text>
               </View>
             </View>
             <View className="flex flex-row items-center justify-center mt-4 bg-gray-100 rounded-full self-end px-6 py-2 gap-2">
               <Ionicons name="close-circle-outline" size={24} color={"red"} />
-              <Text className="text-red-600 text-base font-bold">Cancelled</Text>
+              <Text className="text-red-600 text-base font-bold">
+                Cancelled
+              </Text>
             </View>
           </View>
         );

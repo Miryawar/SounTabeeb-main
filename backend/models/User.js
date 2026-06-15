@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
 
   email: { type: String, required: true, unique: true },
 
-  phone: { type: String, required: true },
+  phone: { type: String, required: true, unique: true },
 
   password: { type: String, required: true },
 
@@ -23,6 +23,14 @@ const userSchema = new mongoose.Schema({
 
   role: { type: String, enum: ["user", "doctor", "admin"], default: "user" },
   doctor: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor" },
+
+  // verification fields
+  emailVerified: { type: Boolean, default: false },
+  emailVerificationCode: { type: String, default: null },
+  emailVerificationExpires: { type: Date, default: null },
+  phoneVerified: { type: Boolean, default: false },
+  phoneVerificationCode: { type: String, default: null },
+  phoneVerificationExpires: { type: Date, default: null },
 
   createdAt: { type: Date, default: Date.now },
 });

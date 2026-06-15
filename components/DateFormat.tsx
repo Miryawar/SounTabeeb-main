@@ -164,9 +164,15 @@ export default function DateFormat({
                 "Payment information is missing. Please complete the payment first.",
               );
             }
+            // send date as YYYY-MM-DD (day only) and a discrete `slot` identifier
+            const dayOnly = dates[isSelectedIndex].toISOString().split("T")[0];
+            const slotHour = dateObj.getHours();
+            const slotMinute = dateObj.getMinutes();
+            const slotStr = `${String(slotHour).padStart(2, "0")}:${String(slotMinute).padStart(2, "0")}`;
             const body: any = {
               doctorId: finalDoctorId,
-              date: dateObj.toISOString(),
+              date: dayOnly,
+              slot: slotStr,
             };
             if (paymentInfo) {
               body.paymentInfo = paymentInfo;
