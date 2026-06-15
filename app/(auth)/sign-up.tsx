@@ -50,8 +50,16 @@ export default function SignUp() {
     }
 
     // call register from context
-    const { ok, message } = await register(name, email, password, { phone });
-    if (!ok) return Alert.alert(message || "Signup failed");
+    const result = await register(name, email, password, { phone });
+    if (!result.ok) return Alert.alert(result.message || "Signup failed");
+    if (result.pendingId) {
+      Alert.alert(
+        "Verify your account",
+        "A verification code was sent. Please confirm your email or phone to finish registration.",
+      );
+      router.replace(`/verify?pendingId=${result.pendingId}`);
+      return;
+    }
     Alert.alert("Account created", "successfully");
     router.replace("/sign-in");
   };

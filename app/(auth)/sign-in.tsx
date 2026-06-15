@@ -6,14 +6,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -139,6 +139,17 @@ export default function SignIn() {
                   Don`t have an account?
                 </Text>
                 <Text className="text-blue-600 text-xl font-bold">Sign Up</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() =>
+                  router.push("/forgot-password?returnTo=patient-login")
+                }
+                className="flex flex-row items-center justify-center mt-4"
+              >
+                <Text className="text-blue-600 text-base font-semibold">
+                  Forgot Password?
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
