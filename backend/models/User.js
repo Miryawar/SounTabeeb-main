@@ -24,6 +24,9 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "doctor", "admin"], default: "user" },
   doctor: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor" },
 
+  // Push notification token for Expo
+  pushToken: { type: String, default: null },
+
   // verification fields
   emailVerified: { type: Boolean, default: false },
   emailVerificationCode: { type: String, default: null },
@@ -31,6 +34,8 @@ const userSchema = new mongoose.Schema({
   phoneVerified: { type: Boolean, default: false },
   phoneVerificationCode: { type: String, default: null },
   phoneVerificationExpires: { type: Date, default: null },
+  resetPasswordToken: { type: String, default: null },
+  resetPasswordExpires: { type: Date, default: null },
 
   createdAt: { type: Date, default: Date.now },
 });

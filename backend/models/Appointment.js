@@ -20,6 +20,7 @@ const appointmentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.Mixed,
     default: null,
   },
+  reminderSent: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
 });
 

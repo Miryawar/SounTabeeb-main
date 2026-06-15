@@ -159,9 +159,50 @@ export const UserProvider = ({ children }: any) => {
       const res = await apiPost("/api/auth/register", body);
       const data = await parseResponse(res);
       if (!res.ok) throw new Error(data.message || "Register failed");
-      // optionally auto-login
-      await AsyncStorage.setItem("token", data.token);
-      setToken(data.token);
+      if (data.token) {
+        await AsyncStorage.setItem("token", data.token);
+        setToken(data.token);
+        if (data.user && data.user.name) {
+          setUserName(data.user.name);
+          await AsyncStorage.setItem("userName", data.user.name);
+        }
+        const profileRes = await apiGet("/api/users/me");
+        const profile = await parseResponse(profileRes);
+        if (profileRes.ok) setUser(profile);
+        return { ok: true };
+      }
+      // Pending registration path: no token until OTP complete
+      if (data.pendingId) {
+        return {
+          ok: true,
+          pendingId: data.pendingId,
+          verification: data.verification,
+        };
+      }
+      return { ok: true };
+    } catch (err: any) {
+      console.log("REGISTER ERROR:", err);
+      return { ok: false, message: err.message };
+    }
+  };
+
+  const completeRegister = async (
+    pendingId: string,
+    emailCode?: string,
+    phoneCode?: string,
+  ) => {
+    try {
+      const res = await apiPost("/api/auth/complete-register", {
+        pendingId,
+        emailCode,
+        phoneCode,
+      });
+      const data = await parseResponse(res);
+      if (!res.ok) throw new Error(data.message || "Verification failed");
+      if (data.token) {
+        await AsyncStorage.setItem("token", data.token);
+        setToken(data.token);
+      }
       if (data.user && data.user.name) {
         setUserName(data.user.name);
         await AsyncStorage.setItem("userName", data.user.name);
@@ -171,7 +212,7 @@ export const UserProvider = ({ children }: any) => {
       if (profileRes.ok) setUser(profile);
       return { ok: true };
     } catch (err: any) {
-      console.log("REGISTER ERROR:", err);
+      console.log("COMPLETE REGISTER ERROR:", err);
       return { ok: false, message: err.message };
     }
   };
@@ -236,6 +277,7 @@ export const UserProvider = ({ children }: any) => {
         loading,
         login,
         register,
+        completeRegister,
         updateUserProfile,
         logout,
         uploadProfilePic,

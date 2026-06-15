@@ -8,6 +8,7 @@ const {
   getProfile,
   uploadProfilePicture,
   removeProfilePicture,
+  savePushToken,
 } = require("../controllers/userController");
 router.get("/me", auth, getProfile);
 
@@ -16,5 +17,6 @@ router.put("/me", auth, updateProfile);
 
 router.post("/upload-profile-picture", auth, uploadProfilePicture);
 router.delete("/profile-picture", auth, removeProfilePicture);
+router.post("/push-token", auth, savePushToken);
 
 module.exports = router;
