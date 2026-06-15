@@ -1,30 +1,26 @@
 const mongoose = require("mongoose");
 
 const connectDB = async (uri) => {
-  const localFallback = process.env.MONGO_URI;
+  const localFallback = process.env.MONGO_FALLBACK_URI;
+  const connectionOptions = {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
+    family: 4,
+  };
 
   try {
-    await mongoose.connect(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(uri, connectionOptions);
     console.log("MongoDB connected");
     return;
   } catch (err) {
-    const isSrvError =
-      err.code === "ENOTFOUND" ||
-      err.code === "ECONNREFUSED" ||
-      (err.message && err.message.includes("querySrv"));
-
     if (localFallback) {
       console.warn(
         "Attempting local MongoDB fallback using MONGO_FALLBACK_URI.",
       );
       try {
-        await mongoose.connect(localFallback, {
-          useNewUrlParser: true,
-          useUnifiedTopology: true,
-        });
+        await mongoose.connect(localFallback, connectionOptions);
         console.log("MongoDB connected using local fallback URI");
         return;
       } catch (localErr) {
@@ -32,7 +28,7 @@ const connectDB = async (uri) => {
       }
     }
 
-    console.error("MongoDB connection error", err.message);
+    console.error("MongoDB connection error", err.message || err);
     process.exit(1);
   }
 };

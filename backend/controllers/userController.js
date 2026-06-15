@@ -122,3 +122,27 @@ exports.removeProfilePicture = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.savePushToken = async (req, res) => {
+  try {
+    const { pushToken } = req.body;
+
+    if (!pushToken) {
+      return res.status(400).json({ message: "Push token is required" });
+    }
+
+    const user = await req.user.constructor
+      .findByIdAndUpdate(req.user._id, { pushToken }, { new: true })
+      .select("-password");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({
+      message: "Push token saved successfully",
+      pushToken: user.pushToken,
+    });
+  } catch (err) {
+    console.error("SAVE PUSH TOKEN ERROR:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};

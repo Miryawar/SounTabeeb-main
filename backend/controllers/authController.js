@@ -3,6 +3,10 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Doctor = require("../models/Doctor");
 const crypto = require("crypto");
+const {
+  sendPasswordResetEmail,
+  sendVerificationEmail,
+} = require("../utils/emailClient");
 
 const EMAIL_CODE_TTL_MS = 1000 * 60 * 60 * 24; // 24h
 const PHONE_CODE_TTL_MS = 1000 * 60 * 10; // 10min
@@ -35,18 +39,41 @@ exports.register = async (req, res) => {
     if (existing)
       return res.status(400).json({ message: "User already exists" });
 
-    // ensure no pending registration
+    // Check for pending registration - if exists, update it with new codes
     let pending = await PendingUser.findOne({ $or: [{ email }, { phone }] });
-    if (pending)
-      return res.status(400).json({
-        message: "Pending registration exists for this email or phone",
-      });
 
     const salt = await bcrypt.genSalt(10);
     const hashed = await bcrypt.hash(password, salt);
 
     const emailCode = String(Math.floor(100000 + Math.random() * 900000));
     const phoneCode = String(Math.floor(100000 + Math.random() * 900000));
+
+    if (pending) {
+      // Update existing pending registration with new credentials and codes
+      pending.name = name;
+      pending.passwordHash = hashed;
+      pending.emailVerificationCode = emailCode;
+      pending.emailVerificationExpires = new Date(
+        Date.now() + EMAIL_CODE_TTL_MS,
+      );
+      pending.phoneVerificationCode = phoneCode;
+      pending.phoneVerificationExpires = new Date(
+        Date.now() + PHONE_CODE_TTL_MS,
+      );
+      await pending.save();
+
+      // Send verification email
+      const emailResult = await sendVerificationEmail(email, emailCode);
+      if (!emailResult.ok) {
+        console.warn("Verification email send failed:", emailResult.message);
+      }
+
+      // Return pending ID so frontend can route to verify
+      return res.json({
+        pendingId: pending._id,
+        verification: { emailCode, phoneCode },
+      });
+    }
 
     const pendingData = {
       name,
@@ -69,7 +96,13 @@ exports.register = async (req, res) => {
     pending = new PendingUser(pendingData);
     await pending.save();
 
-    // return pending id and tokens for testing (in prod send email/SMS)
+    // Send verification email
+    const emailResult = await sendVerificationEmail(email, emailCode);
+    if (!emailResult.ok) {
+      console.warn("Verification email send failed:", emailResult.message);
+    }
+
+    // return pending id for verification process
     res.json({
       pendingId: pending._id,
       verification: { emailCode, phoneCode },
@@ -129,7 +162,7 @@ exports.login = async (req, res) => {
   }
 };
 
-// send email verification code (simulate sending)
+// send email verification code
 exports.sendEmailVerification = async (req, res) => {
   try {
     const { email } = req.body;
@@ -143,9 +176,9 @@ exports.sendEmailVerification = async (req, res) => {
         Date.now() + EMAIL_CODE_TTL_MS,
       );
       await target.save();
+      await sendVerificationEmail(email, code);
       return res.json({
-        message: "Verification code generated for pending registration",
-        code,
+        message: "Verification code sent to pending registration email",
       });
     }
     const user = await User.findOne({ email });
@@ -153,8 +186,8 @@ exports.sendEmailVerification = async (req, res) => {
     user.emailVerificationCode = code;
     user.emailVerificationExpires = new Date(Date.now() + EMAIL_CODE_TTL_MS);
     await user.save();
-    // in prod: send email. Here return code for testing.
-    res.json({ message: "Verification code generated", code });
+    await sendVerificationEmail(email, code);
+    res.json({ message: "Verification code sent to email" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -203,6 +236,70 @@ exports.verifyEmail = async (req, res) => {
     pending.emailVerificationExpires = null;
     await pending.save();
     res.json({ message: "Email verified for pending registration" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email required" });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.json({
+        message:
+          "If an account exists for that email, a reset link has been sent.",
+      });
+    }
+
+    const token = crypto.randomBytes(24).toString("hex");
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = new Date(Date.now() + 1000 * 60 * 60); // 1h
+    await user.save();
+
+    const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const emailResult = await sendPasswordResetEmail(email, token, baseUrl);
+
+    if (!emailResult.ok) {
+      console.warn("Email send failed:", emailResult.message);
+      return res.status(500).json({
+        message: "Failed to send reset email. Please try again later.",
+      });
+    }
+
+    return res.json({
+      message: "Password reset email sent",
+    });
+  } catch (err) {
+    console.error("FORGOT PASSWORD ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password)
+      return res
+        .status(400)
+        .json({ message: "Token and new password are required" });
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: new Date() },
+    });
+    if (!user)
+      return res.status(400).json({ message: "Invalid or expired token" });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    res.json({ message: "Password reset successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
