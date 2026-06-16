@@ -17,13 +17,6 @@ export default function DateFormat({
     : params.doctorId;
   const finalDoctorId = doctorId || routeDoctorId || "";
   const date = new Date();
-  const options: Intl.DateTimeFormatOptions = {
-    weekday: "short",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
-  const formattedDate = date.toLocaleDateString("en-US", options).toUpperCase();
 
   // dates for next 30 days
   const dates: Date[] = [];

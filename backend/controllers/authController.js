@@ -64,14 +64,19 @@ exports.register = async (req, res) => {
 
       // Send verification email
       const emailResult = await sendVerificationEmail(email, emailCode);
+
       if (!emailResult.ok) {
-        console.warn("Verification email send failed:", emailResult.message);
+        return res.status(500).json({
+          message: "Failed to send verification email",
+          error: emailResult.message,
+        });
       }
 
       // Return pending ID so frontend can route to verify
       return res.json({
         pendingId: pending._id,
-        verification: { emailCode, phoneCode },
+        message: "Verification code sent",
+        // verification: { emailCode, phoneCode },
       });
     }
 
@@ -98,14 +103,20 @@ exports.register = async (req, res) => {
 
     // Send verification email
     const emailResult = await sendVerificationEmail(email, emailCode);
+
     if (!emailResult.ok) {
-      console.warn("Verification email send failed:", emailResult.message);
+      await PendingUser.findByIdAndDelete(pending._id);
+
+      return res.status(500).json({
+        message: "Failed to send verification email",
+        error: emailResult.message,
+      });
     }
 
     // return pending id for verification process
-    res.json({
+    return res.json({
       pendingId: pending._id,
-      verification: { emailCode, phoneCode },
+      message: "Verification email sent",
     });
   } catch (err) {
     console.error("REGISTER INIT ERROR:", err);
@@ -232,10 +243,19 @@ exports.verifyEmail = async (req, res) => {
     )
       return res.status(400).json({ message: "Code expired" });
     // clear code on pending (client can call complete-register with pendingId)
-    pending.emailVerificationCode = null;
-    pending.emailVerificationExpires = null;
+    // pending.emailVerificationCode = null;
+    // pending.emailVerificationExpires = null;
+    pending.emailVerified = true;
     await pending.save();
-    res.json({ message: "Email verified for pending registration" });
+
+    console.log("EMAIL VERIFIED");
+    console.log("pendingId:", pending._id);
+    console.log("emailVerified:", pending.emailVerified);
+
+    return res.json({
+      message: "Email verified for pending registration",
+      emailVerified: true,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -306,7 +326,6 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-// phone code
 exports.sendPhoneCode = async (req, res) => {
   try {
     const { phone } = req.body;
@@ -376,8 +395,9 @@ exports.verifyPhone = async (req, res) => {
       pending.phoneVerificationExpires < new Date()
     )
       return res.status(400).json({ message: "Code expired" });
-    pending.phoneVerificationCode = null;
-    pending.phoneVerificationExpires = null;
+    // pending.phoneVerificationCode = null;
+    // pending.phoneVerificationExpires = null;
+    pending.phoneVerified = true;
     await pending.save();
     res.json({ message: "Phone verified for pending registration" });
   } catch (err) {
@@ -397,27 +417,41 @@ exports.completeRegister = async (req, res) => {
       return res
         .status(404)
         .json({ message: "Pending registration not found" });
+    if (!pending.emailVerified) {
+      return res.status(400).json({
+        message: "Please verify your email before continuing",
+      });
+    }
 
     // check codes (either emailCode or phoneCode must match)
-    if (emailCode) {
-      if (pending.emailVerificationCode !== String(emailCode))
-        return res.status(400).json({ message: "Invalid email code" });
-      if (
-        pending.emailVerificationExpires &&
-        pending.emailVerificationExpires < new Date()
-      )
-        return res.status(400).json({ message: "Email code expired" });
+    // if (emailCode) {
+    //   if (pending.emailVerificationCode !== String(emailCode))
+    //     return res.status(400).json({ message: "Invalid email code" });
+    //   if (
+    //     pending.emailVerificationExpires &&
+    //     pending.emailVerificationExpires < new Date()
+    //   )
+    //     return res.status(400).json({ message: "Email code expired" });
+    // }
+    if (!pending.emailVerified) {
+      return res.status(400).json({
+        message: "Email not verified",
+      });
     }
-    if (phoneCode) {
-      if (pending.phoneVerificationCode !== String(phoneCode))
-        return res.status(400).json({ message: "Invalid phone code" });
-      if (
-        pending.phoneVerificationExpires &&
-        pending.phoneVerificationExpires < new Date()
-      )
-        return res.status(400).json({ message: "Phone code expired" });
-    }
-
+    // if (phoneCode) {
+    //   if (pending.phoneVerificationCode !== String(phoneCode))
+    //     return res.status(400).json({ message: "Invalid phone code" });
+    //   if (
+    //     pending.phoneVerificationExpires &&
+    //     pending.phoneVerificationExpires < new Date()
+    //   )
+    //     return res.status(400).json({ message: "Phone code expired" });
+    // }
+    // if (!pending.emailVerified || !pending.phoneVerified) {
+    //   return res.status(400).json({
+    //     message: "Complete all verifications",
+    //   });
+    // }
     // Create actual User
     // Ensure no race with existing users
     const existing = await User.findOne({
@@ -435,8 +469,8 @@ exports.completeRegister = async (req, res) => {
       phone: pending.phone,
       password: pending.passwordHash,
       role: pending.role || "user",
-      emailVerified: !!emailCode,
-      phoneVerified: !!phoneCode,
+      emailVerified: pending.emailVerified,
+      // phoneVerified: pending.phoneVerified,
     };
 
     const user = new User(userData);

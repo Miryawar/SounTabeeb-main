@@ -2,7 +2,7 @@ import { assets, doctors as localDoctors } from "@/assets/assets";
 import { useEffect, useState } from "react";
 import { apiGet } from "./api";
 
-export function useDoctors() {
+const useDoctors = () => {
   const [doctors, setDoctors] = useState<any[]>(localDoctors);
   const [loading, setLoading] = useState(false);
 
@@ -48,6 +48,5 @@ export function useDoctors() {
   }, []);
 
   return { doctors, loading };
-}
-
+};
 export default useDoctors;

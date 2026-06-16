@@ -21,14 +21,13 @@ npm install expo-server-sdk node-cron
 
 Add these to your `.env` file:
 
-```
-EMAIL_USER=your-email@gmail.com
+```EMAIL_USER=your-email@gmail.com
 EMAIL_PASSWORD=your-app-password
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 ```
 
-**Note**: For Gmail, use an App Password (not your regular password). Enable 2FA and generate an app password at https://myaccount.google.com/apppasswords
+**Note**: For Gmail, use an App Password (not your regular password). Enable 2FA and generate an app password at <https://myaccount.google.com/apppasswords>
 
 ## Frontend Integration
 
@@ -138,12 +137,12 @@ Every hour, the scheduler checks for appointments in the next 24 hours:
 
 ### notificationService.js
 
-**sendPushNotification(pushToken, title, body, data)**
+**sendPushNotification(pushToken, title, body, data)***
 
 - Sends single push notification via Expo
 - Returns { ok, message, failedTokens }
 
-**sendBulkPushNotifications(pushTokens, title, body, data)**
+**sendBulkPushNotifications(pushTokens, title, body, data)***
 
 - Sends notifications to multiple users
 - Returns { ok, message, sent, failedTokens }
@@ -156,16 +155,16 @@ Every hour, the scheduler checks for appointments in the next 24 hours:
 
 ### appointmentReminder.js
 
-**startReminderScheduler()**
+**startReminderScheduler()***
 
 - Starts the cron job (runs every hour)
 - Sends reminders for appointments in next 24 hours
 
-**stopReminderScheduler()**
+**stopReminderScheduler()***
 
 - Stops the scheduler (useful for testing)
 
-**manuallyTriggerReminders()**
+**manuallyTriggerReminders()***
 
 - Manually trigger reminders for testing
 

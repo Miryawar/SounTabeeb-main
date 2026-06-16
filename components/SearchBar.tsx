@@ -106,7 +106,7 @@ export default function SearchBar() {
             )}
             ListEmptyComponent={() => (
               <Text className="text-center text-gray-500 py-8">
-                No doctors found for "{search}".
+                No doctors found for {`"${search}"`}.
               </Text>
             )}
           />

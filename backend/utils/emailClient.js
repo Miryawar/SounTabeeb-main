@@ -3,7 +3,7 @@ const nodemailer = require("nodemailer");
 const emailUser = process.env.EMAIL_USER || "noreply@sountabeeb.com";
 const emailPassword = process.env.EMAIL_PASSWORD || "";
 const emailHost = process.env.EMAIL_HOST || "smtp.gmail.com";
-const emailPort = process.env.EMAIL_PORT || 587;
+const emailPort = Number(process.env.EMAIL_PORT) || 587;
 
 const transporter = nodemailer.createTransport({
   host: emailHost,
@@ -13,6 +13,13 @@ const transporter = nodemailer.createTransport({
     user: emailUser,
     pass: emailPassword,
   },
+});
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("SMTP VERIFY ERROR:", error.message);
+  } else {
+    console.log("SMTP READY");
+  }
 });
 
 exports.sendPasswordResetEmail = async (email, resetToken, baseUrl) => {

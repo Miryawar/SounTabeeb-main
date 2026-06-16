@@ -1,88 +1,18 @@
 import { useUser } from "@/context/UserContext";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Profile() {
   const router = useRouter();
-  const {
-    logout,
-    user,
-    profileImage,
-    userName,
-    uploadProfilePic,
-    removeProfilePic,
-  } = useUser();
-  const [uploading, setUploading] = useState(false);
-
-  const pickImage = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-        base64: true,
-      });
-
-      if (!result.canceled && result.assets[0].base64) {
-        setUploading(true);
-        const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
-        const response = await uploadProfilePic(base64Image);
-
-        if (response.ok) {
-          Alert.alert("Success", "Profile picture updated successfully");
-        } else {
-          Alert.alert("Error", response.message || "Failed to upload picture");
-        }
-        setUploading(false);
-      }
-    } catch (error) {
-      console.log("Image picker error:", error);
-      Alert.alert("Error", "Failed to pick image");
-      setUploading(false);
-    }
-  };
-
-  const handleRemoveProfilePicture = async () => {
-    Alert.alert(
-      "Remove Profile Picture",
-      "Are you sure you want to remove your profile picture?",
-      [
-        { text: "Cancel", onPress: () => {} },
-        {
-          text: "Remove",
-          onPress: async () => {
-            setUploading(true);
-            const response = await removeProfilePic();
-
-            if (response.ok) {
-              Alert.alert("Success", "Profile picture removed successfully");
-            } else {
-              Alert.alert(
-                "Error",
-                response.message || "Failed to remove picture",
-              );
-            }
-            setUploading(false);
-          },
-          style: "destructive",
-        },
-      ],
-    );
-  };
-
+  const { logout, user, profileImage, userName } = useUser();
   const isPatient = user?.role === "user";
   const hasProfileImage = !!profileImage || !!user?.profilePicture;
 
