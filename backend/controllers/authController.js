@@ -409,7 +409,7 @@ exports.verifyPhone = async (req, res) => {
 // Complete registration: verify tokens from pending and create actual User
 exports.completeRegister = async (req, res) => {
   try {
-    const { pendingId, emailCode, phoneCode } = req.body;
+    const { pendingId } = req.body;
     if (!pendingId)
       return res.status(400).json({ message: "pendingId required" });
     const pending = await PendingUser.findById(pendingId);
@@ -442,20 +442,20 @@ exports.completeRegister = async (req, res) => {
         message: "Email not verified",
       });
     }
-    if (phoneCode) {
-      if (pending.phoneVerificationCode !== String(phoneCode))
-        return res.status(400).json({ message: "Invalid phone code" });
-      if (
-        pending.phoneVerificationExpires &&
-        pending.phoneVerificationExpires < new Date()
-      )
-        return res.status(400).json({ message: "Phone code expired" });
-    }
-    if (!pending.emailVerified || !pending.phoneVerified) {
-      return res.status(400).json({
-        message: "Complete all verifications",
-      });
-    }
+    // if (phoneCode) {
+    //   if (pending.phoneVerificationCode !== String(phoneCode))
+    //     return res.status(400).json({ message: "Invalid phone code" });
+    //   if (
+    //     pending.phoneVerificationExpires &&
+    //     pending.phoneVerificationExpires < new Date()
+    //   )
+    //     return res.status(400).json({ message: "Phone code expired" });
+    // }
+    // if (!pending.emailVerified || !pending.phoneVerified) {
+    //   return res.status(400).json({
+    //     message: "Complete all verifications",
+    //   });
+    // }
     // Create actual User
     // Ensure no race with existing users
     const existing = await User.findOne({
