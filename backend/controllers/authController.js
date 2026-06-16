@@ -413,6 +413,10 @@ exports.completeRegister = async (req, res) => {
     if (!pendingId)
       return res.status(400).json({ message: "pendingId required" });
     const pending = await PendingUser.findById(pendingId);
+    console.log("COMPLETE REGISTER");
+    console.log("pendingId:", pendingId);
+    console.log("pending.emailVerified:", pending.emailVerified);
+    console.log("pending.email:", pending.email);
     if (!pending)
       return res
         .status(404)
@@ -438,20 +442,20 @@ exports.completeRegister = async (req, res) => {
         message: "Email not verified",
       });
     }
-    // if (phoneCode) {
-    //   if (pending.phoneVerificationCode !== String(phoneCode))
-    //     return res.status(400).json({ message: "Invalid phone code" });
-    //   if (
-    //     pending.phoneVerificationExpires &&
-    //     pending.phoneVerificationExpires < new Date()
-    //   )
-    //     return res.status(400).json({ message: "Phone code expired" });
-    // }
-    // if (!pending.emailVerified || !pending.phoneVerified) {
-    //   return res.status(400).json({
-    //     message: "Complete all verifications",
-    //   });
-    // }
+    if (phoneCode) {
+      if (pending.phoneVerificationCode !== String(phoneCode))
+        return res.status(400).json({ message: "Invalid phone code" });
+      if (
+        pending.phoneVerificationExpires &&
+        pending.phoneVerificationExpires < new Date()
+      )
+        return res.status(400).json({ message: "Phone code expired" });
+    }
+    if (!pending.emailVerified || !pending.phoneVerified) {
+      return res.status(400).json({
+        message: "Complete all verifications",
+      });
+    }
     // Create actual User
     // Ensure no race with existing users
     const existing = await User.findOne({
