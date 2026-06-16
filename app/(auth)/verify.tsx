@@ -17,10 +17,10 @@ import { useUser } from "@/context/UserContext";
 
 export default function Verify() {
   const router = useRouter();
-  const { pendingId, email } = useLocalSearchParams();
+  const { pendingId, email, role } = useLocalSearchParams();
   const { verifyEmail, completeRegister } = useUser();
   const [emailCode, setEmailCode] = useState("");
-  const [phoneCode, setPhoneCode] = useState("");
+  // const [phoneCode, setPhoneCode] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleVerify = async () => {
@@ -72,7 +72,11 @@ export default function Verify() {
       "Your account is now active.",
     );
   
-    router.replace("/sign-in");
+    if (role === "doctor") {
+      router.replace("/doctor/login");
+    } else {
+      router.replace("/sign-in");
+    }
   };
 
   return (
@@ -126,7 +130,7 @@ export default function Verify() {
                 className="border border-gray-400 px-4 py-3 rounded-lg mb-4"
               />
 
-              <Text className="text-gray-600 text-lg font-bold">
+              {/* <Text className="text-gray-600 text-lg font-bold">
                 Phone Code
               </Text>
               <TextInput
@@ -137,7 +141,7 @@ export default function Verify() {
                 keyboardType="numeric"
                 maxLength={6}
                 className="border border-gray-400 px-4 py-3 rounded-lg mb-4"
-              />
+              /> */}
 
               <TouchableOpacity
                 onPress={handleVerify}

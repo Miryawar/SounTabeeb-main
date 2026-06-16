@@ -36,6 +36,8 @@ export const DoctorProvider = ({ children }: any) => {
       try {
         const res = await apiGet("/api/users/me", "doctorToken");
         const data = await parseResponse(res);
+
+        console.log("REGISTER RESPONSE:", JSON.stringify(data, null, 2));
         if (res.ok && data.role === "doctor") {
           setDoctor(data);
           await AsyncStorage.setItem("doctorProfile", JSON.stringify(data));
@@ -80,6 +82,14 @@ export const DoctorProvider = ({ children }: any) => {
       }
 
       const doctorData = { ...data.user, role: data.user.role };
+      if (!data.token) {
+        console.log("Token missing from register response:", data);
+        return {
+          ok: false,
+          message: "Registration succeeded but no token was returned",
+        };
+      }
+
       await AsyncStorage.setItem("doctorToken", data.token);
       await AsyncStorage.setItem("doctorProfile", JSON.stringify(doctorData));
       setToken(data.token);
@@ -138,21 +148,39 @@ export const DoctorProvider = ({ children }: any) => {
       };
 
       const res = await apiPost("/api/auth/register", body);
+
       const data = await parseResponse(res);
 
+      console.log("DOCTOR REGISTER RESPONSE:", JSON.stringify(data, null, 2));
+
       if (!res.ok) {
-        return { ok: false, message: data.message || "Registration failed" };
+        return {
+          ok: false,
+          message: data.message || "Registration failed",
+        };
       }
 
-      const doctorData = {
-        ...data.user,
-        role: "doctor",
-      };
+      // OTP / pending registration flow
+      if (data.pendingId) {
+        return {
+          ok: true,
+          pendingId: data.pendingId,
+        };
+      }
 
-      await AsyncStorage.setItem("doctorToken", data.token);
-      await AsyncStorage.setItem("doctorProfile", JSON.stringify(doctorData));
-      setToken(data.token);
-      setDoctor(doctorData);
+      // Immediate token flow
+      if (data.token) {
+        const doctorData = {
+          ...data.user,
+          role: "doctor",
+        };
+
+        await AsyncStorage.setItem("doctorToken", data.token);
+        await AsyncStorage.setItem("doctorProfile", JSON.stringify(doctorData));
+
+        setToken(data.token);
+        setDoctor(doctorData);
+      }
 
       return { ok: true };
     } catch (err: any) {

@@ -1,11 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useState } from "react";
 import {
-    apiGet,
-    apiPost,
-    apiPut,
-    removeProfilePicture,
-    uploadProfilePicture,
+  apiGet,
+  apiPost,
+  apiPut,
+  removeProfilePicture,
+  uploadProfilePicture,
 } from "../utils/api";
 const UserContext = createContext<any>(null);
 
@@ -129,7 +129,17 @@ export const UserProvider = ({ children }: any) => {
     try {
       const res = await apiPost("/api/auth/login", { email, password });
       const data = await parseResponse(res);
+
       if (!res.ok) throw new Error(data.message || "Login failed");
+
+      // Prevent doctors from using normal user login
+      if (data.user?.role === "doctor") {
+        return {
+          ok: false,
+          message: "Please use Doctor Login.",
+        };
+      }
+
       await AsyncStorage.setItem("token", data.token);
       setToken(data.token);
       if (data.user && data.user.name) {
@@ -192,13 +202,13 @@ export const UserProvider = ({ children }: any) => {
         email,
         code,
       });
-  
+
       const data = await parseResponse(res);
-  
+
       if (!res.ok) {
         throw new Error(data.message || "Email verification failed");
       }
-  
+
       return { ok: true };
     } catch (err: any) {
       return {
