@@ -6,6 +6,8 @@ const pendingUserSchema = new mongoose.Schema({
   phone: { type: String, required: true, index: true },
   passwordHash: { type: String, required: true },
   role: { type: String, enum: ["user", "doctor"], default: "user" },
+  emailVerified: { type: Boolean, default: false,},
+  phoneVerified: { type: Boolean, default: false, },
   profilePicture: String,
   bio: String,
   speciality: String,
