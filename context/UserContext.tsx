@@ -186,6 +186,27 @@ export const UserProvider = ({ children }: any) => {
     }
   };
 
+  const verifyEmail = async (email: string, code: string) => {
+    try {
+      const res = await apiPost("/api/auth/verify-email", {
+        email,
+        code,
+      });
+  
+      const data = await parseResponse(res);
+  
+      if (!res.ok) {
+        throw new Error(data.message || "Email verification failed");
+      }
+  
+      return { ok: true };
+    } catch (err: any) {
+      return {
+        ok: false,
+        message: err.message,
+      };
+    }
+  };
   const completeRegister = async (
     pendingId: string,
     emailCode?: string,
@@ -277,6 +298,7 @@ export const UserProvider = ({ children }: any) => {
         loading,
         login,
         register,
+        verifyEmail,
         completeRegister,
         updateUserProfile,
         logout,

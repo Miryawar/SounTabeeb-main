@@ -57,7 +57,9 @@ export default function SignUp() {
         "Verify your account",
         "A verification code was sent. Please confirm your email or phone to finish registration.",
       );
-      router.replace(`/verify?pendingId=${result.pendingId}`);
+      router.replace(
+        `/verify?pendingId=${result.pendingId}&email=${encodeURIComponent(email)}`,
+      );
       return;
     }
     Alert.alert("Account created", "successfully");

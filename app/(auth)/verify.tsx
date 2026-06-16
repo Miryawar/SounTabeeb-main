@@ -17,36 +17,61 @@ import { useUser } from "@/context/UserContext";
 
 export default function Verify() {
   const router = useRouter();
-  const { pendingId } = useLocalSearchParams();
-  const { completeRegister } = useUser();
+  const { pendingId, email } = useLocalSearchParams();
+  const { verifyEmail, completeRegister } = useUser();
   const [emailCode, setEmailCode] = useState("");
   const [phoneCode, setPhoneCode] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleVerify = async () => {
-    if (!pendingId) {
-      return Alert.alert("Verification error", "Missing pendingId.");
-    }
-    if (!emailCode && !phoneCode) {
+    if (!pendingId || !email) {
       return Alert.alert(
-        "Enter a code",
-        "Please provide either the email code or phone code.",
+        "Verification error",
+        "Missing verification information.",
       );
     }
-
+  
+    if (!emailCode) {
+      return Alert.alert(
+        "Enter code",
+        "Please enter the email verification code.",
+      );
+    }
+  
     setLoading(true);
+  
+    const verifyResult = await verifyEmail(
+      email.toString(),
+      emailCode,
+    );
+  
+    if (!verifyResult.ok) {
+      setLoading(false);
+  
+      return Alert.alert(
+        "Verification failed",
+        verifyResult.message,
+      );
+    }
+  
     const result = await completeRegister(
       pendingId.toString(),
-      emailCode || undefined,
-      phoneCode || undefined,
     );
+  
     setLoading(false);
-
+  
     if (!result.ok) {
-      return Alert.alert(result.message || "Verification failed");
+      return Alert.alert(
+        "Registration failed",
+        result.message,
+      );
     }
-
-    Alert.alert("Account verified", "Your account is now active.");
+  
+    Alert.alert(
+      "Account verified",
+      "Your account is now active.",
+    );
+  
     router.replace("/sign-in");
   };
 
