@@ -3,13 +3,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -18,13 +18,15 @@ import { validatePassword } from "@/utils/validation";
 
 export default function ResetPassword() {
   const router = useRouter();
-  const { token } = useLocalSearchParams();
+  // const { token } = useLocalSearchParams();
+  const { email, returnTo } = useLocalSearchParams();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleReset = async () => {
-    if (!token) return Alert.alert("Invalid reset link", "Missing token.");
+    // if (!token) return Alert.alert("Invalid reset link", "Missing token.");
+    if (!email) return Alert.alert("Error", "Email missing.");
     if (password !== confirmPassword)
       return Alert.alert("Passwords do not match");
 
@@ -33,8 +35,12 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
+      // const res = await apiPost("/api/auth/reset-password", {
+      //   token,
+      //   password,
+      // });
       const res = await apiPost("/api/auth/reset-password", {
-        token,
+        email,
         password,
       });
       const data = await res.json();
@@ -44,7 +50,10 @@ export default function ResetPassword() {
         "Password reset",
         "You can now sign in with your new password.",
       );
-      router.replace("/sign-in");
+
+      router.replace(
+        returnTo === "doctor-login" ? "/doctor/login" : "/sign-in",
+      );
     } catch (err: any) {
       Alert.alert(err.message || "Failed to reset password");
     } finally {

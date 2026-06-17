@@ -3,13 +3,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -33,11 +33,26 @@ export default function ForgotPassword() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Request failed");
 
+      // setSent(true);
+      // Alert.alert(
+      //   "Password reset email sent",
+      //   "Check your email for reset instructions.",
+      // );
       setSent(true);
-      Alert.alert(
-        "Password reset email sent",
-        "Check your email for reset instructions.",
-      );
+
+      Alert.alert("OTP Sent", "Check your email for the OTP", [
+        {
+          text: "OK",
+          onPress: () =>
+            router.replace({
+              pathname: "/verify-reset-otp",
+              params: {
+                email,
+                returnTo,
+              },
+            }),
+        },
+      ]);
     } catch (err: any) {
       Alert.alert(err.message || "Failed to send reset link");
     } finally {
@@ -62,7 +77,7 @@ export default function ForgotPassword() {
               Forgot Password
             </Text>
             <Text className="text-center text-gray-500 mt-2 mb-6">
-              Enter your email and we will send a password reset link.
+              Enter your email and we will send an OTP to reset your password.
             </Text>
 
             <View className="w-full space-y-4">
@@ -85,7 +100,7 @@ export default function ForgotPassword() {
               >
                 <Ionicons name="send" size={22} color="#fff" />
                 <Text className="ml-3 text-white text-lg font-semibold">
-                  {loading ? "Sending..." : "Send Reset Link"}
+                  {loading ? "Sending..." : "Send OTP"}
                 </Text>
               </TouchableOpacity>
 
@@ -95,7 +110,7 @@ export default function ForgotPassword() {
                     Reset email sent
                   </Text>
                   <Text className="text-gray-700">
-                    Open your email and follow the link to reset your password.
+                    Check your email for the OTP to reset your password.
                   </Text>
                 </View>
               )}

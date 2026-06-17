@@ -36,6 +36,8 @@ const userSchema = new mongoose.Schema({
   phoneVerificationExpires: { type: Date, default: null },
   resetPasswordToken: { type: String, default: null },
   resetPasswordExpires: { type: Date, default: null },
+  resetOtp: { type: String, default: null },
+  resetOtpExpires: { type: Date, default: null },
 
   createdAt: { type: Date, default: Date.now },
 });
