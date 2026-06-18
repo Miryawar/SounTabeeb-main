@@ -1,4 +1,4 @@
-import { apiPost } from "@/utils/api";
+import { apiGet, apiPost } from "@/utils/api";
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import { LinearGradient } from "expo-linear-gradient";
@@ -30,6 +30,7 @@ export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [attachment, setAttachment] = useState(null);
+  const [loadingHistory, setLoadingHistory] = useState(true);
   const scrollRef = useRef(null);
   const router = useRouter();
 
@@ -62,6 +63,32 @@ export default function Chat() {
   const scrollToBottom = () => {
     scrollRef.current?.scrollToEnd({ animated: true });
   };
+
+  const loadChatHistory = async () => {
+    try {
+      const res = await apiGet("/api/ai-chat/history");
+      const data = await res.json();
+      if (!res.ok) {
+        console.warn("Failed to load chat history", data);
+        return;
+      }
+
+      const historyMessages = (data.messages || []).map((message) => ({
+        id: `${message._id}-${message.role}`,
+        author: message.role === "assistant" ? "assistant" : "user",
+        text: message.text,
+      }));
+      setMessages(historyMessages);
+    } catch (err) {
+      console.warn("Failed to load chat history", err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    loadChatHistory();
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
@@ -167,34 +194,49 @@ export default function Chat() {
                   </Text>
                 </View>
 
-                {messages.map((message) => (
-                  <View
-                    key={message.id}
-                    className={`mb-3 flex-row ${
-                      message.author === "user"
-                        ? "justify-end"
-                        : "justify-start"
-                    }`}
-                  >
+                {loadingHistory ? (
+                  <View className="py-12 items-center">
+                    <ActivityIndicator size="large" color="#2563EB" />
+                    <Text className="text-white text-base mt-3">
+                      Loading conversation...
+                    </Text>
+                  </View>
+                ) : messages.length === 0 ? (
+                  <View className="py-12 items-center">
+                    <Text className="text-white text-base">
+                      Start your first health question by typing below.
+                    </Text>
+                  </View>
+                ) : (
+                  messages.map((message) => (
                     <View
-                      className={`rounded-3xl px-4 py-3 max-w-[80%] ${
+                      key={message.id}
+                      className={`mb-3 flex-row ${
                         message.author === "user"
-                          ? "bg-blue-600"
-                          : "bg-white border border-gray-200"
+                          ? "justify-end"
+                          : "justify-start"
                       }`}
                     >
-                      <Text
-                        className={`text-base ${
+                      <View
+                        className={`rounded-3xl px-4 py-3 max-w-[80%] ${
                           message.author === "user"
-                            ? "text-white"
-                            : "text-gray-800"
+                            ? "bg-blue-600"
+                            : "bg-white border border-gray-200"
                         }`}
                       >
-                        {message.text}
-                      </Text>
+                        <Text
+                          className={`text-base ${
+                            message.author === "user"
+                              ? "text-white"
+                              : "text-gray-800"
+                          }`}
+                        >
+                          {message.text}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                ))}
+                  ))
+                )}
 
                 {loading && (
                   <ActivityIndicator

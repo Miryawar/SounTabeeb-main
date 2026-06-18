@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
     ActivityIndicator,
-    FlatList,
     Image,
     Text,
     TextInput,
@@ -81,11 +80,14 @@ export default function SearchBar() {
 
       {search.trim() !== "" && !loading && (
         <View className="px-4 mt-4">
-          <FlatList
-            data={filteredDoctors}
-            keyExtractor={(item) => item._id}
-            renderItem={({ item }) => (
+          {filteredDoctors.length === 0 ? (
+            <Text className="text-center text-gray-500 py-8">
+              No doctors found for {`"${search}"`}.
+            </Text>
+          ) : (
+            filteredDoctors.map((item) => (
               <TouchableOpacity
+                key={item._id}
                 onPress={() => router.push(`/appointment/${item._id}`)}
                 className="flex-row items-center gap-4 bg-gray-100 p-4 mb-3 rounded-2xl"
               >
@@ -103,13 +105,8 @@ export default function SearchBar() {
                   <Text className="text-gray-500">{item.speciality}</Text>
                 </View>
               </TouchableOpacity>
-            )}
-            ListEmptyComponent={() => (
-              <Text className="text-center text-gray-500 py-8">
-                No doctors found for {`"${search}"`}.
-              </Text>
-            )}
-          />
+            ))
+          )}
         </View>
       )}
     </View>

@@ -1,11 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
+import * as Device from "expo-device";
 import { createContext, useContext, useEffect, useState } from "react";
 import {
-  apiGet,
-  apiPost,
-  apiPut,
-  removeProfilePicture,
-  uploadProfilePicture,
+    apiGet,
+    apiPost,
+    apiPut,
+    removeProfilePicture,
+    uploadProfilePicture,
 } from "../utils/api";
 const UserContext = createContext<any>(null);
 
@@ -144,6 +146,69 @@ export const UserProvider = ({ children }: any) => {
     } catch (err: any) {
       console.log("REFRESH USER PROFILE ERROR:", err.message);
       return { ok: false, message: err.message };
+    }
+  };
+
+  useEffect(() => {
+    if (!token) return;
+
+    const registerPush = async () => {
+      const pushToken = await getPushNotificationToken();
+      if (!pushToken) return;
+      await registerPushToken(pushToken);
+    };
+
+    registerPush();
+  }, [token]);
+
+  const registerPushToken = async (pushToken: string) => {
+    try {
+      const res = await apiPost("/api/users/push-token", { pushToken });
+      const data = await parseResponse(res);
+      if (!res.ok) {
+        throw new Error(data.message || "Unable to save push token");
+      }
+      await refreshUserProfile();
+      return { ok: true };
+    } catch (err: any) {
+      console.warn("SAVE PUSH TOKEN ERROR:", err.message);
+      return { ok: false, message: err.message };
+    }
+  };
+
+  const getPushNotificationToken = async () => {
+    try {
+      if (Constants.appOwnership === "expo") {
+        console.warn(
+          "Push notifications are disabled in Expo Go. Use a development build instead.",
+        );
+        return null;
+      }
+
+      if (!Device.isDevice) {
+        console.warn("Push notifications require a physical device.");
+        return null;
+      }
+
+      const Notifications = await import("expo-notifications");
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== "granted") {
+        console.warn("Push notifications permission not granted");
+        return null;
+      }
+
+      const tokenData = await Notifications.getExpoPushTokenAsync();
+      return tokenData.data;
+    } catch (err: any) {
+      console.warn("Failed to get push notification token:", err.message);
+      return null;
     }
   };
 
@@ -349,6 +414,7 @@ export const UserProvider = ({ children }: any) => {
         completeRegister,
         updateUserProfile,
         refreshUserProfile,
+        registerPushToken,
         markNotificationRead,
         logout,
         uploadProfilePic,

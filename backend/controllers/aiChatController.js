@@ -1,8 +1,13 @@
 const Doctor = require("../models/Doctor");
+const AIChatMessage = require("../models/AIChatMessage");
 
-const AI_PROVIDER = process.env.AI_PROVIDER?.trim().toLowerCase() || "gemini";
+const AI_PROVIDER = process.env.AI_PROVIDER?.trim().toLowerCase() || "auto";
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY?.trim() || null;
 const GOOGLE_GEMINI_MODEL = process.env.GOOGLE_GEMINI_MODEL || "gemini-2.5-pro";
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY?.trim() || null;
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const OPENAI_FALLBACK_MODEL =
+  process.env.OPENAI_FALLBACK_MODEL || "gpt-3.5-turbo";
 
 const specialityHints = [
   {
@@ -151,17 +156,112 @@ async function askGemini(question) {
   }
 }
 
-async function askProvider(question) {
+async function askOpenAI(question) {
+  if (!OPENAI_API_KEY) {
+    console.warn("OpenAI provider skipped: OPENAI_API_KEY is not configured.");
+    return null;
+  }
+
+  const systemPrompt =
+    "You are SounTabeeb's medical assistant. Provide helpful, context-aware health guidance in a responsible way. Always include a brief disclaimer that you are not a substitute for professional medical advice and encourage users to consult a qualified healthcare provider for serious or persistent symptoms.";
+
+  const userContent = `User question: ${question}`;
+
   try {
-    return await askGemini(question);
+    const url = "https://api.openai.com/v1/chat/completions";
+    const payload = {
+      model: OPENAI_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userContent },
+      ],
+      temperature: 0.7,
+      max_tokens: 700,
+    };
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error("OpenAI provider response error", response.status, data);
+      return null;
+    }
+
+    const text = data?.choices?.[0]?.message?.content || null;
+    return text ? String(text).trim() : null;
   } catch (err) {
-    console.error("Gemini provider error:", err.message || err);
+    console.error("OpenAI request failed:", err.message || err);
     return null;
   }
 }
 
+async function askProvider(question) {
+  const normalizedProvider = AI_PROVIDER || "auto";
+  const enabledOpenAI = !!OPENAI_API_KEY;
+  const enabledGemini = !!GOOGLE_API_KEY;
+
+  if (normalizedProvider === "openai") {
+    if (enabledOpenAI) {
+      const answer = await askOpenAI(question);
+      return { answer, providerUsed: "openai" };
+    }
+    if (enabledGemini) {
+      const answer = await askGemini(question);
+      return { answer, providerUsed: "gemini" };
+    }
+    return { answer: null, providerUsed: null };
+  }
+
+  if (normalizedProvider === "gemini") {
+    if (enabledGemini) {
+      const answer = await askGemini(question);
+      return { answer, providerUsed: "gemini" };
+    }
+    if (enabledOpenAI) {
+      const answer = await askOpenAI(question);
+      return { answer, providerUsed: "openai" };
+    }
+    return { answer: null, providerUsed: null };
+  }
+
+  if (normalizedProvider === "auto") {
+    if (enabledOpenAI) {
+      const answer = await askOpenAI(question);
+      if (answer) return { answer, providerUsed: "openai" };
+      if (enabledGemini) {
+        const fallbackAnswer = await askGemini(question);
+        return { answer: fallbackAnswer, providerUsed: "gemini" };
+      }
+      return { answer: null, providerUsed: null };
+    }
+    if (enabledGemini) {
+      const answer = await askGemini(question);
+      return { answer, providerUsed: "gemini" };
+    }
+    return { answer: null, providerUsed: null };
+  }
+
+  // fall back to Gemini if the configured provider isn't available
+  if (enabledGemini) {
+    const answer = await askGemini(question);
+    return { answer, providerUsed: "gemini" };
+  }
+  if (enabledOpenAI) {
+    const answer = await askOpenAI(question);
+    return { answer, providerUsed: "openai" };
+  }
+  return { answer: null, providerUsed: null };
+}
+
 function providerKeyAvailable() {
-  return !!GOOGLE_API_KEY;
+  return !!OPENAI_API_KEY || !!GOOGLE_API_KEY;
 }
 
 function localAnswer(query) {
@@ -387,9 +487,10 @@ exports.handleAiChat = async (req, res) => {
 
     if (providerKeyAvailable()) {
       providerAttempted = true;
-      providerUsed = "gemini";
       try {
-        answer = await askProvider(text);
+        const providerResult = await askProvider(text);
+        answer = providerResult.answer;
+        providerUsed = providerResult.providerUsed;
         if (!answer) {
           // AI provider attempted but returned no usable answer
           console.warn("AI provider attempted but returned no answer");
@@ -425,6 +526,29 @@ exports.handleAiChat = async (req, res) => {
       recommendations = await findDoctors(speciality);
     }
 
+    // Save chat history in database
+    await Promise.all([
+      AIChatMessage.create({
+        user: req.user._id,
+        role: "user",
+        text,
+        provider: "user",
+        metadata: { speciality },
+      }),
+      AIChatMessage.create({
+        user: req.user._id,
+        role: "assistant",
+        text: answer,
+        provider: providerUsed || (providerAttempted ? "gemini" : "local"),
+        metadata: {
+          speciality,
+          providerAttempted,
+          providerUsed,
+          disclaimer: true,
+        },
+      }),
+    ]);
+
     return res.json({
       answer,
       recommendations,
@@ -442,3 +566,16 @@ exports.handleAiChat = async (req, res) => {
 // expose askProvider for other controllers to reuse (returns AI answer or null)
 exports.askProvider = askProvider;
 exports.providerKeyAvailable = providerKeyAvailable;
+
+exports.getChatHistory = async (req, res) => {
+  try {
+    const messages = await AIChatMessage.find({ user: req.user._id })
+      .sort({ createdAt: 1 })
+      .lean();
+
+    return res.json({ messages });
+  } catch (err) {
+    console.error("Get chat history error:", err.message || err);
+    return res.status(500).json({ message: "Failed to fetch chat history" });
+  }
+};

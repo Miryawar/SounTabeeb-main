@@ -156,7 +156,7 @@ const sendAppointmentRequestedNotifications = async (
   }
 
   if (doctor && doctor.user) {
-    addInAppNotification(
+    await addInAppNotification(
       doctor.user,
       "New Appointment Request",
       `${user.name} has requested an appointment for ${slot}.`,
@@ -165,6 +165,25 @@ const sendAppointmentRequestedNotifications = async (
         type: "appointment_request",
       },
     );
+
+    try {
+      const doctorUser = await User.findById(doctor.user);
+      if (doctorUser?.pushToken) {
+        notificationService
+          .sendPushNotification(
+            doctorUser.pushToken,
+            "New Appointment Request",
+            `${user.name} has requested an appointment for ${slot}.`,
+            {
+              appointmentId: appt._id.toString(),
+              type: "appointment_request",
+            },
+          )
+          .catch((err) => console.error("Doctor push error:", err));
+      }
+    } catch (err) {
+      console.error("Doctor push notification lookup error:", err);
+    }
   }
 };
 
@@ -185,6 +204,32 @@ const sendAppointmentStatusUpdate = async (appt, oldStatus, status) => {
       })
       .catch((err) =>
         console.error("Status update push notification error:", err),
+      );
+  }
+};
+
+const sendRescheduleResponseNotifications = async (appt, decision) => {
+  if (!appt.user) return;
+  const title =
+    decision === "approved" ? "Reschedule Approved" : "Reschedule Declined";
+  const body =
+    decision === "approved"
+      ? `Your appointment reschedule request was approved for ${appt.slot}.`
+      : "Your appointment reschedule request was declined.";
+
+  await addInAppNotification(appt.user._id, title, body, {
+    appointmentId: appt._id.toString(),
+    type: `reschedule_${decision}`,
+  });
+
+  if (appt.user.pushToken) {
+    notificationService
+      .sendPushNotification(appt.user.pushToken, title, body, {
+        appointmentId: appt._id.toString(),
+        type: `reschedule_${decision}`,
+      })
+      .catch((err) =>
+        console.error("Reschedule response push notification error:", err),
       );
   }
 };
@@ -670,10 +715,7 @@ exports.respondRescheduleRequest = async (req, res) => {
         : `Your reschedule request was declined.`;
 
     if (appt.user) {
-      await addInAppNotification(appt.user._id, title, body, {
-        appointmentId: appt._id.toString(),
-        type: "appointment_reschedule_response",
-      });
+      await sendRescheduleResponseNotifications(appt, decision);
     }
 
     return res.json(appt);
