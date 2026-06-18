@@ -21,6 +21,27 @@ const userSchema = new mongoose.Schema({
     default: null,
   },
 
+  medicalRecords: [
+    {
+      title: String,
+      description: String,
+      doctor: String,
+      date: Date,
+      notes: String,
+    },
+  ],
+
+  notifications: [
+    {
+      title: String,
+      body: String,
+      type: String,
+      data: mongoose.Schema.Types.Mixed,
+      read: { type: Boolean, default: false },
+      createdAt: { type: Date, default: Date.now },
+    },
+  ],
+
   role: { type: String, enum: ["user", "doctor", "admin"], default: "user" },
   doctor: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor" },
 

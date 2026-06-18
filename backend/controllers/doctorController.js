@@ -4,6 +4,31 @@ const User = require("../models/User");
 const fs = require("fs");
 const path = require("path");
 
+const findDoctorByUser = async (userId) => {
+  let doctor = await Doctor.findOne({ user: userId });
+  if (!doctor) {
+    doctor = await Doctor.findById(userId);
+  }
+  return doctor;
+};
+
+const buildMonthlyRevenue = (appointments) => {
+  const months = {};
+  appointments.forEach((appt) => {
+    const date = new Date(appt.date);
+    const label = `${date.toLocaleString("en-US", {
+      month: "short",
+      year: "numeric",
+    })}`;
+    const amount = Number(appt.payment?.amount) || 0;
+    months[label] = (months[label] || 0) + amount;
+  });
+  return Object.entries(months).map(([month, revenue]) => ({
+    month,
+    revenue,
+  }));
+};
+
 exports.list = async (req, res) => {
   try {
     const doctors = await Doctor.find().limit(50);
@@ -85,6 +110,88 @@ exports.getMyPatients = async (req, res) => {
   }
 };
 
+exports.getMyEarnings = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user || user.role !== "doctor") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const doctor = await Doctor.findOne({ user: user._id });
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor profile not found" });
+    }
+
+    const appointments = await Appointment.find({
+      doctor: doctor._id,
+      status: { $in: ["confirmed", "completed"] },
+    });
+
+    const totalRevenue = appointments.reduce(
+      (sum, appt) => sum + (Number(appt.payment?.amount) || 0),
+      0,
+    );
+    const completedCount = appointments.filter(
+      (appt) => appt.status === "completed",
+    ).length;
+    const confirmedCount = appointments.filter(
+      (appt) => appt.status === "confirmed",
+    ).length;
+
+    res.json({
+      totalRevenue,
+      completedCount,
+      confirmedCount,
+      appointmentCount: appointments.length,
+      monthlyRevenue: buildMonthlyRevenue(appointments),
+    });
+  } catch (err) {
+    console.error("GET MY EARNINGS ERROR:", err.message || err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getPatientHistory = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user || user.role !== "doctor") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const doctor = await Doctor.findOne({ user: user._id });
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor profile not found" });
+    }
+
+    const { patientId } = req.params;
+    if (!patientId) {
+      return res.status(400).json({ message: "Patient ID is required" });
+    }
+
+    const patient = await User.findById(patientId).select(
+      "name email phone profilePicture",
+    );
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    const appointments = await Appointment.find({
+      doctor: doctor._id,
+      user: patientId,
+    })
+      .sort({ date: -1 })
+      .populate("doctor", "name speciality profilePicture");
+
+    res.json({
+      patient,
+      history: appointments,
+    });
+  } catch (err) {
+    console.error("GET PATIENT HISTORY ERROR:", err.message || err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 exports.updateMe = async (req, res) => {
   try {
     const user = req.user;
@@ -123,6 +230,9 @@ exports.updateMe = async (req, res) => {
       "experience",
       "licenseNumber",
       "bio",
+      "fees",
+      "workingHours",
+      "leaves",
     ];
 
     // Handle profile picture updates and removal
@@ -185,6 +295,9 @@ exports.updateMe = async (req, res) => {
       experience: doctor.experience || "",
       licenseNumber: doctor.licenseNumber || "",
       bio: doctor.bio || "",
+      fees: doctor.fees || 0,
+      workingHours: doctor.workingHours || [],
+      leaves: doctor.leaves || [],
     });
   } catch (err) {
     console.error("UPDATE DOCTOR PROFILE ERROR:", err.message || err);

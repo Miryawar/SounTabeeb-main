@@ -21,6 +21,55 @@ const findDoctor = async (doctorId) => {
   return doctor;
 };
 
+const parseTimeToMinutes = (time) => {
+  if (!time || typeof time !== "string") return null;
+  const parts = time.split(":").map((part) => Number(part.trim()));
+  if (parts.length !== 2 || parts.some((value) => Number.isNaN(value))) {
+    return null;
+  }
+  const [hours, minutes] = parts;
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+  return hours * 60 + minutes;
+};
+
+const parseSlotStart = (slot) => {
+  if (!slot || typeof slot !== "string") return null;
+  const [start] = slot.split("-").map((part) => part.trim());
+  return parseTimeToMinutes(start);
+};
+
+const isWithinWorkingHours = (doctor, appointmentDate, slot) => {
+  if (!doctor || !Array.isArray(doctor.workingHours)) return true;
+
+  const dayName = appointmentDate.toLocaleDateString("en-US", {
+    weekday: "long",
+  });
+  const schedule = doctor.workingHours.find((hour) => hour.day === dayName);
+
+  if (!schedule) return false;
+  if (!schedule.active) return false;
+
+  const slotStart = parseSlotStart(slot);
+  const workStart = parseTimeToMinutes(schedule.start);
+  const workEnd = parseTimeToMinutes(schedule.end);
+
+  if (slotStart === null || workStart === null || workEnd === null) return true;
+
+  return slotStart >= workStart && slotStart < workEnd;
+};
+
+const isOnLeave = (doctor, appointmentDate) => {
+  if (!doctor || !Array.isArray(doctor.leaves)) return false;
+  return doctor.leaves.some((leave) => {
+    if (!leave?.from || !leave?.to) return false;
+    const from = new Date(leave.from);
+    const to = new Date(leave.to);
+    from.setHours(0, 0, 0, 0);
+    to.setHours(23, 59, 59, 999);
+    return appointmentDate >= from && appointmentDate <= to;
+  });
+};
+
 const sendAppointmentConfirmedNotifications = async (
   user,
   doctor,
@@ -109,6 +158,20 @@ exports.verifyRazorpayPayment = async (req, res) => {
     const doctor = await findDoctor(doctorId);
     if (!doctor) {
       return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    if (!isWithinWorkingHours(doctor, appointmentDate, slot)) {
+      return res.status(400).json({
+        message:
+          "The doctor is not available at this time. Please choose a slot within their working schedule.",
+      });
+    }
+
+    if (isOnLeave(doctor, appointmentDate)) {
+      return res.status(400).json({
+        message:
+          "The doctor is on leave on this date. Please select another day.",
+      });
     }
 
     const existing = await Appointment.findOne({
@@ -202,6 +265,20 @@ exports.create = async (req, res) => {
     const doctor = await findDoctor(doctorId);
     if (!doctor) {
       return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    if (!isWithinWorkingHours(doctor, appointmentDate, slot)) {
+      return res.status(400).json({
+        message:
+          "The doctor is not available at this time. Please choose a slot within their working schedule.",
+      });
+    }
+
+    if (isOnLeave(doctor, appointmentDate)) {
+      return res.status(400).json({
+        message:
+          "The doctor is on leave on this date. Please select another day.",
+      });
     }
 
     const existing = await Appointment.findOne({

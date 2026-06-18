@@ -1,13 +1,7 @@
 import { useUser } from "@/context/UserContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import {
-    Image,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View
-} from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Profile() {
@@ -98,6 +92,57 @@ export default function Profile() {
               size={24}
               color={"gray"}
             ></Ionicons>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push("/appointment-history")}
+            className="flex flex-row items-center justify-between bg-gray-200 px-2 py-3 rounded-lg mb-4"
+          >
+            <Text className="text-lg font-medium text-gray-600">
+              Appointment History
+            </Text>
+            <Ionicons
+              name="chevron-forward-sharp"
+              size={24}
+              color={"gray"}
+            ></Ionicons>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push("/medical-records")}
+            className="flex flex-row items-center justify-between bg-gray-200 px-2 py-3 rounded-lg mb-4"
+          >
+            <Text className="text-lg font-medium text-gray-600">
+              Medical Records
+            </Text>
+            <Ionicons
+              name="chevron-forward-sharp"
+              size={24}
+              color={"gray"}
+            ></Ionicons>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push("/notification-center")}
+            className="flex flex-row items-center justify-between bg-gray-200 px-2 py-3 rounded-lg mb-4"
+          >
+            <Text className="text-lg font-medium text-gray-600">
+              Notification Center
+            </Text>
+            <View className="flex flex-row items-center gap-2">
+              {user?.notifications?.filter((n: any) => !n.read).length > 0 && (
+                <View className="bg-red-500 rounded-full px-3 py-1">
+                  <Text className="text-white text-sm font-bold">
+                    {user.notifications.filter((n: any) => !n.read).length}
+                  </Text>
+                </View>
+              )}
+              <Ionicons
+                name="chevron-forward-sharp"
+                size={24}
+                color={"gray"}
+              ></Ionicons>
+            </View>
           </TouchableOpacity>
 
           <Text className="text-dark text-lg font-bold mb-4">

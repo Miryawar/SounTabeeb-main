@@ -283,6 +283,61 @@ export default function DoctorDashboard() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            onPress={() => router.push("/doctor/working-hours")}
+            className="rounded-3xl overflow-hidden shadow-md"
+          >
+            <LinearGradient
+              colors={["#3b82f6", "#06b6d4"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="p-4"
+            >
+              <Text className="text-lg font-semibold text-white">
+                Working hours
+              </Text>
+              <Text className="mt-2 text-sm text-white/90">
+                Manage your weekly availability and time slots.
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push("/doctor/leaves")}
+            className="rounded-3xl overflow-hidden shadow-md"
+          >
+            <LinearGradient
+              colors={["#f59e0b", "#ef4444"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="p-4"
+            >
+              <Text className="text-lg font-semibold text-white">
+                Leave planner
+              </Text>
+              <Text className="mt-2 text-sm text-white/90">
+                Set unavailable days and vacation periods.
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push("/doctor/earnings")}
+            className="rounded-3xl overflow-hidden shadow-md"
+          >
+            <LinearGradient
+              colors={["#10b981", "#14b8a6"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="p-4"
+            >
+              <Text className="text-lg font-semibold text-white">Earnings</Text>
+              <Text className="mt-2 text-sm text-white/90">
+                Review booking income and revenue trends.
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             onPress={() => router.push("/doctor/profile")}
             className="rounded-3xl overflow-hidden shadow-md"
           >

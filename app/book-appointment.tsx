@@ -4,15 +4,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useGlobalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Linking,
-  Modal,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    Linking,
+    Modal,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -273,7 +273,7 @@ export default function BookAppointment() {
               </View>
             </Modal>
           ) : (
-            <DateFormat doctorId={doctorId} paymentInfo={paymentInfo} />
+            <DateFormat doctor={selectedDoctor} paymentInfo={paymentInfo} />
           )}
         </ScrollView>
       </View>

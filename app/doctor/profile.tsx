@@ -281,7 +281,7 @@ export default function DoctorProfile() {
             <TouchableOpacity
               onPress={async () => {
                 await logout();
-                router.replace("/");
+                router.replace("/doctor/logindoctor/login");
               }}
               className="rounded-3xl bg-red-600 py-4 items-center"
             >

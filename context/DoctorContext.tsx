@@ -126,6 +126,34 @@ export const DoctorProvider = ({ children }: any) => {
     }
   };
 
+  const refreshDoctorProfile = async () => {
+    const storedToken = await AsyncStorage.getItem("doctorToken");
+    if (!storedToken) {
+      setDoctor(null);
+      return { ok: false, message: "No token available" };
+    }
+
+    try {
+      const res = await apiGet("/api/users/me", "doctorToken");
+      const data = await parseResponse(res);
+      if (!res.ok) {
+        return {
+          ok: false,
+          message: data.message || "Failed to refresh profile",
+        };
+      }
+      if (data.role !== "doctor") {
+        return { ok: false, message: "Not a doctor account" };
+      }
+      await AsyncStorage.setItem("doctorProfile", JSON.stringify(data));
+      setDoctor(data);
+      return { ok: true, data };
+    } catch (err: any) {
+      console.error("REFRESH DOCTOR PROFILE ERROR:", err);
+      return { ok: false, message: err.message || "Failed to refresh profile" };
+    }
+  };
+
   const register = async (
     name: string,
     email: string,

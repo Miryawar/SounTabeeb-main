@@ -53,6 +53,13 @@ export default function DoctorLayout() {
         options={{ title: "My Appointments" }}
       />
       <Stack.Screen name="patients" options={{ title: "Patient List" }} />
+      <Stack.Screen name="working-hours" options={{ title: "Working Hours" }} />
+      <Stack.Screen name="leaves" options={{ title: "Leave Planner" }} />
+      <Stack.Screen name="earnings" options={{ title: "Earnings" }} />
+      <Stack.Screen
+        name="patient-history"
+        options={{ title: "Patient History" }}
+      />
       <Stack.Screen name="profile" options={{ title: "Profile Settings" }} />
     </Stack>
   );

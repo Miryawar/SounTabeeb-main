@@ -4,53 +4,129 @@ import { useGlobalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
+type WorkingHour = {
+  day: string;
+  start: string;
+  end: string;
+  active: boolean;
+};
+
+type Leave = {
+  from: string;
+  to: string;
+  reason?: string;
+};
+
+type Doctor = {
+  _id: string;
+  workingHours?: WorkingHour[];
+  leaves?: Leave[];
+};
+
+const getDayName = (date: Date) =>
+  date.toLocaleDateString("en-US", { weekday: "long" });
+
+const isDateOnLeave = (date: Date, leaves: Leave[] = []) => {
+  return leaves.some((leave) => {
+    if (!leave?.from || !leave?.to) return false;
+    const from = new Date(leave.from);
+    const to = new Date(leave.to);
+    from.setHours(0, 0, 0, 0);
+    to.setHours(23, 59, 59, 999);
+    return date >= from && date <= to;
+  });
+};
+
+const getWorkingHoursForDate = (
+  date: Date,
+  workingHours: WorkingHour[] = [],
+) => {
+  const dayName = getDayName(date);
+  return workingHours.find((hour) => hour.day === dayName) || null;
+};
+
+const getAvailableTimeSlots = (
+  date: Date,
+  workingHours: WorkingHour[] = [],
+  currentTimes: string[] = [],
+) => {
+  const schedule = getWorkingHoursForDate(date, workingHours);
+  if (!schedule || !schedule.active) return [];
+
+  const parseTime = (time: string) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
+
+  const startMinutes = parseTime(schedule.start);
+  const endMinutes = parseTime(schedule.end);
+  return currentTimes.filter((time) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    const slotMinutes = hours * 60 + minutes;
+    return slotMinutes >= startMinutes && slotMinutes < endMinutes;
+  });
+};
+
 export default function DateFormat({
-  doctorId,
+  doctor,
   paymentInfo,
 }: {
-  doctorId?: string;
+  doctor?: Doctor;
   paymentInfo?: any;
 }) {
   const params = useGlobalSearchParams();
   const routeDoctorId = Array.isArray(params.doctorId)
     ? params.doctorId[0]
     : params.doctorId;
-  const finalDoctorId = doctorId || routeDoctorId || "";
+  const finalDoctorId = doctor?._id || routeDoctorId || "";
   const date = new Date();
 
-  // dates for next 30 days
+  // dates for next 6 months (approx 180 days)
   const dates: Date[] = [];
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 180; i++) {
     const nextDate = new Date();
     nextDate.setDate(nextDate.getDate() + i);
+    nextDate.setHours(0, 0, 0, 0);
     dates.push(nextDate);
   }
-  const [isSelectedIndex, setIsSelectedIndex] = useState(0);
+  const isDateSelectable = (date: Date) => {
+    if (!doctor) return false;
+    if (isDateOnLeave(date, doctor.leaves || [])) return false;
+    const schedule = getWorkingHoursForDate(date, doctor.workingHours || []);
+    return Boolean(schedule && schedule.active);
+  };
+
+  const [isSelectedIndex, setIsSelectedIndex] = useState(() => {
+    const firstAvailable = dates.findIndex(isDateSelectable);
+    return firstAvailable >= 0 ? firstAvailable : 0;
+  });
 
   const [selectedTime, setSelectedTime] = useState("");
 
   const router = useRouter();
 
-  const times = [];
-
+  const currentTimes: string[] = [];
   const startTime = new Date();
+  startTime.setHours(0, 0, 0, 0);
 
-  startTime.setHours(9);
-  startTime.setMinutes(0);
-
-  // time intervals for each user
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 24 * 6; i += 1) {
     const time = new Date(startTime);
-
-    time.setMinutes(startTime.getMinutes() + i * 10);
-
-    times.push(
+    time.setMinutes(i * 10);
+    currentTimes.push(
       time.toLocaleTimeString("en-IN", {
         hour: "2-digit",
         minute: "2-digit",
+        hour12: false,
       }),
     );
   }
+
+  const selectedDate = new Date(dates[isSelectedIndex]);
+  const times = getAvailableTimeSlots(
+    selectedDate,
+    doctor?.workingHours,
+    currentTimes,
+  );
 
   return (
     <ScrollView
@@ -75,8 +151,9 @@ export default function DateFormat({
         {dates.map((items, index) => (
           <TouchableOpacity
             key={index}
-            onPress={() => setIsSelectedIndex(index)}
-            className={`px-3   py-3 rounded-full border ${isSelectedIndex === index ? "bg-blue-600 border-gray-600" : "bg-white border-gray-200"}`}
+            onPress={() => isDateSelectable(items) && setIsSelectedIndex(index)}
+            disabled={!isDateSelectable(items)}
+            className={`px-3 py-3 rounded-full border ${isSelectedIndex === index ? "bg-blue-600 border-gray-600" : isDateSelectable(items) ? "bg-white border-gray-200" : "bg-gray-100 border-gray-200 opacity-50"}`}
           >
             <View>
               <Text
@@ -104,15 +181,21 @@ export default function DateFormat({
       <Text className="text-gray-800 font-bold text-xl my-4">Choose Time</Text>
 
       <View className="flex flex-row  flex-wrap">
-        {times.map((time, index) => (
-          <TouchableOpacity
-            key={index}
-            onPress={() => setSelectedTime(time)}
-            className={`px-2 py-4 mb-2 ml-2 rounded-lg border ${selectedTime === time ? "bg-blue-600 border-gray-600" : "bg-white border-gray-200"}`}
-          >
-            <Text>{time}</Text>
-          </TouchableOpacity>
-        ))}
+        {times.length === 0 ? (
+          <Text className="text-gray-500 px-4 py-3">
+            No available time slots for this date. Please select another date.
+          </Text>
+        ) : (
+          times.map((time, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => setSelectedTime(time)}
+              className={`px-2 py-4 mb-2 ml-2 rounded-lg border ${selectedTime === time ? "bg-blue-600 border-gray-600" : "bg-white border-gray-200"}`}
+            >
+              <Text>{time}</Text>
+            </TouchableOpacity>
+          ))
+        )}
       </View>
 
       <View className="flex flex-row items-center gap-6 bg-green-50 px-4 py-3 rounded-xl">
@@ -140,16 +223,8 @@ export default function DateFormat({
           if (!finalDoctorId) return Alert.alert("Missing doctor id");
           if (!selectedTime) return Alert.alert("Please select a time");
           const dateObj = new Date(dates[isSelectedIndex]);
-          // parse selectedTime like "09:30 AM"
-          const parts = selectedTime.match(/(\d{1,2}):(\d{2})\s?(AM|PM)/i);
-          if (parts) {
-            let hour = parseInt(parts[1], 10);
-            const minute = parseInt(parts[2], 10);
-            const ampm = parts[3].toUpperCase();
-            if (ampm === "PM" && hour !== 12) hour += 12;
-            if (ampm === "AM" && hour === 12) hour = 0;
-            dateObj.setHours(hour, minute, 0, 0);
-          }
+          const [hourStr, minuteStr] = selectedTime.split(":");
+          dateObj.setHours(Number(hourStr), Number(minuteStr), 0, 0);
           try {
             if (!paymentInfo) {
               return Alert.alert(

@@ -92,6 +92,16 @@ export default function DoctorPatients() {
                 <Text className="text-gray-600 mt-2">
                   {item.phone || "Phone not available"}
                 </Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push(`/doctor/patient-history?patientId=${item.id}`)
+                  }
+                  className="mt-4 rounded-2xl bg-slate-800 py-3 items-center"
+                >
+                  <Text className="text-white font-semibold">
+                    View appointment history
+                  </Text>
+                </TouchableOpacity>
               </View>
             ))}
           </View>

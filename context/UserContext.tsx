@@ -125,6 +125,28 @@ export const UserProvider = ({ children }: any) => {
     }
   };
 
+  const refreshUserProfile = async () => {
+    try {
+      const res = await apiGet("/api/users/me");
+      const data = await parseResponse(res);
+      if (res.ok) {
+        setUser(data);
+        if (data.name) {
+          setUserName(data.name);
+          await AsyncStorage.setItem("userName", data.name);
+        }
+        return { ok: true, user: data };
+      }
+      return {
+        ok: false,
+        message: data.message || "Unable to refresh profile",
+      };
+    } catch (err: any) {
+      console.log("REFRESH USER PROFILE ERROR:", err.message);
+      return { ok: false, message: err.message };
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
       const res = await apiPost("/api/auth/login", { email, password });
@@ -256,17 +278,32 @@ export const UserProvider = ({ children }: any) => {
     setUserName(null);
   };
 
+  const markNotificationRead = async (notificationId: string) => {
+    try {
+      const res = await apiPost(
+        `/api/users/notifications/${notificationId}/read`,
+        {},
+      );
+      const data = await parseResponse(res);
+      if (!res.ok) {
+        throw new Error(data.message || "Unable to mark notification read");
+      }
+      await refreshUserProfile();
+      return { ok: true, user: data };
+    } catch (err: any) {
+      console.log("MARK NOTIFICATION READ ERROR:", err.message);
+      return { ok: false, message: err.message };
+    }
+  };
+
   const uploadProfilePic = async (base64Image: string) => {
     try {
       const res = await uploadProfilePicture(base64Image);
       const data = await parseResponse(res);
       if (!res.ok) throw new Error(data.message || "Upload failed");
 
-      // Update local state with new profile picture
       setProfileImage(base64Image);
       await AsyncStorage.setItem("profileImage", base64Image);
-
-      // Update user object with new profile picture
       setUser({ ...user, profilePicture: base64Image });
 
       return { ok: true, message: "Profile picture updated" };
@@ -311,6 +348,8 @@ export const UserProvider = ({ children }: any) => {
         verifyEmail,
         completeRegister,
         updateUserProfile,
+        refreshUserProfile,
+        markNotificationRead,
         logout,
         uploadProfilePic,
         removeProfilePic,

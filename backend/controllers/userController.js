@@ -1,4 +1,5 @@
 const Doctor = require("../models/Doctor");
+const User = require("../models/User");
 
 exports.getProfile = async (req, res) => {
   try {
@@ -18,6 +19,8 @@ exports.getProfile = async (req, res) => {
       district: user.district || "",
       pincode: user.pincode || "",
       gender: user.gender || "",
+      medicalRecords: user.medicalRecords || [],
+      notifications: user.notifications || [],
       role: user.role || "user",
       profilePicture:
         doctorProfile?.profilePicture || user.profilePicture || null,
@@ -26,6 +29,9 @@ exports.getProfile = async (req, res) => {
       experience: doctorProfile?.experience || "",
       licenseNumber: doctorProfile?.licenseNumber || "",
       bio: doctorProfile?.bio || "",
+      fees: doctorProfile?.fees || 0,
+      workingHours: doctorProfile?.workingHours || [],
+      leaves: doctorProfile?.leaves || [],
     };
 
     res.json(profile);
@@ -48,6 +54,9 @@ exports.updateProfile = async (req, res) => {
       district: req.body.district,
       pincode: req.body.pincode,
       gender: req.body.gender,
+      medicalRecords: Array.isArray(req.body.medicalRecords)
+        ? req.body.medicalRecords
+        : undefined,
     };
 
     if (req.body.phone) {
@@ -104,6 +113,30 @@ exports.uploadProfilePicture = async (req, res) => {
     });
   } catch (err) {
     console.error("UPLOAD PROFILE PICTURE ERROR:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.markNotificationRead = async (req, res) => {
+  try {
+    const notificationId = req.params.id;
+    if (!notificationId) {
+      return res.status(400).json({ message: "Notification id is required" });
+    }
+
+    const user = await User.findOneAndUpdate(
+      { _id: req.user._id, "notifications._id": notificationId },
+      { $set: { "notifications.$.read": true } },
+      { new: true },
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "Notification not found" });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error("MARK NOTIFICATION READ ERROR:", err.message || err);
     res.status(500).json({ message: "Server error" });
   }
 };
