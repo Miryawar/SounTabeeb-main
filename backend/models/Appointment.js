@@ -7,19 +7,45 @@ const appointmentSchema = new mongoose.Schema({
     ref: "Doctor",
     required: true,
   },
-  // `date` is stored as the appointment day (time normalized to midnight)
   date: { type: Date, required: true },
-  // `slot` is a discrete slot identifier (e.g. "09:00" or "09:00-09:30")
   slot: { type: String, required: true },
   status: {
     type: String,
-    enum: ["pending", "confirmed", "cancelled", "completed"],
+    enum: ["pending", "confirmed", "cancelled", "completed", "rejected"],
     default: "pending",
+  },
+  approval: {
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    doctorNotes: String,
+    requestedAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
+  },
+  rescheduleRequest: {
+    requestedBy: {
+      type: String,
+      enum: ["user", "doctor"],
+      default: "user",
+    },
+    requestedDate: Date,
+    requestedSlot: String,
+    reason: String,
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected", "cancelled"],
+      default: "pending",
+    },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
   },
   payment: {
     type: mongoose.Schema.Types.Mixed,
     default: null,
   },
+  transactionId: { type: mongoose.Schema.Types.ObjectId, ref: "Transaction" },
   reminderSent: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
 });

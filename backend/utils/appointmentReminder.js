@@ -2,8 +2,26 @@ const cron = require("node-cron");
 const mongoose = require("mongoose");
 const Appointment = require("../models/Appointment");
 const User = require("../models/User");
-const Doctor = require("../models/Doctor");
 const notificationService = require("./notificationService");
+
+const addInAppNotification = async (userId, title, body, data = {}) => {
+  try {
+    await User.findByIdAndUpdate(userId, {
+      $push: {
+        notifications: {
+          title,
+          body,
+          type: data.type || "appointment",
+          data,
+          read: false,
+          createdAt: new Date(),
+        },
+      },
+    });
+  } catch (err) {
+    console.error("Failed to add in-app notification:", err);
+  }
+};
 
 let reminderScheduler = null;
 
@@ -101,12 +119,20 @@ const sendAppointmentReminders = async () => {
           );
         }
 
+        await addInAppNotification(
+          user._id,
+          "Appointment Reminder",
+          `Reminder: your appointment with ${doctor.name} is tomorrow at ${appointment.slot}.`,
+          {
+            appointmentId: appointment._id.toString(),
+            type: "appointment_reminder",
+          },
+        );
+
         // Mark reminder as sent
-        if (emailResult.ok || pushResult.ok) {
-          appointment.reminderSent = true;
-          await appointment.save();
-          console.log(`Reminder sent for appointment ${appointment._id}`);
-        }
+        appointment.reminderSent = true;
+        await appointment.save();
+        console.log(`Reminder sent for appointment ${appointment._id}`);
       } catch (err) {
         console.error(
           `Error sending reminder for appointment ${appointment._id}:`,

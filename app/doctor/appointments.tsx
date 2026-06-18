@@ -1,5 +1,5 @@
 import { useDoctor } from "@/context/DoctorContext";
-import { apiGet, apiPut } from "@/utils/api";
+import { apiGet, apiPost, apiPut } from "@/utils/api";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -79,6 +79,33 @@ export default function DoctorAppointments() {
     }
   };
 
+  const handleRescheduleDecision = async (id: string, decision: string) => {
+    setUpdatingId(id);
+    try {
+      const res = await apiPost(
+        `/api/appointments/${id}/reschedule-response`,
+        { decision },
+        "doctorToken",
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        Alert.alert(data.message || "Unable to submit reschedule decision");
+      } else {
+        fetchAppointments();
+        try {
+          touchRefresh && touchRefresh();
+        } catch (e) {
+          // ignore
+        }
+      }
+    } catch (err) {
+      console.warn(err);
+      Alert.alert("Unable to process reschedule decision");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const upcomingAppointments = appointments.filter((item) =>
     ["pending", "confirmed"].includes(item.status),
   );
@@ -149,31 +176,134 @@ export default function DoctorAppointments() {
                       <Text className="text-gray-600 mt-1">
                         Status: {item.status}
                       </Text>
+                      {item.approval?.status && (
+                        <Text className="text-gray-600 mt-1">
+                          Doctor Approval: {item.approval.status}
+                        </Text>
+                      )}
+                      {item.rescheduleRequest?.status && (
+                        <View className="mt-3 rounded-2xl bg-slate-50 p-3 border border-slate-200">
+                          <Text className="text-sm font-semibold text-slate-900">
+                            Reschedule Request
+                          </Text>
+                          <Text className="text-sm text-slate-600 mt-1">
+                            Requested by: {item.rescheduleRequest.requestedBy}
+                          </Text>
+                          <Text className="text-sm text-slate-600">
+                            Date:{" "}
+                            {item.rescheduleRequest.requestedDate
+                              ? new Date(
+                                  item.rescheduleRequest.requestedDate,
+                                ).toLocaleDateString("en-IN", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                })
+                              : "N/A"}
+                          </Text>
+                          <Text className="text-sm text-slate-600">
+                            Slot:{" "}
+                            {item.rescheduleRequest.requestedSlot || "N/A"}
+                          </Text>
+                          <Text className="text-sm text-slate-600">
+                            Reason:{" "}
+                            {item.rescheduleRequest.reason ||
+                              "No reason provided"}
+                          </Text>
+                          <Text className="text-sm text-slate-600 mt-1">
+                            Request status: {item.rescheduleRequest.status}
+                          </Text>
+                        </View>
+                      )}
                       <View className="mt-4 flex-row gap-3">
-                        <TouchableOpacity
-                          onPress={() =>
-                            handleStatusChange(item._id, "completed")
-                          }
-                          disabled={updatingId === item._id}
-                          className="flex-1 rounded-xl bg-green-600 px-4 py-3"
-                        >
-                          <Text className="text-center text-white font-bold">
-                            {updatingId === item._id
-                              ? "Updating..."
-                              : "Mark Completed"}
-                          </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() =>
-                            handleStatusChange(item._id, "cancelled")
-                          }
-                          disabled={updatingId === item._id}
-                          className="flex-1 rounded-xl bg-red-600 px-4 py-3"
-                        >
-                          <Text className="text-center text-white font-bold">
-                            {updatingId === item._id ? "Updating..." : "Cancel"}
-                          </Text>
-                        </TouchableOpacity>
+                        {item.rescheduleRequest?.status === "pending" ? (
+                          <>
+                            <TouchableOpacity
+                              onPress={() =>
+                                handleRescheduleDecision(item._id, "approved")
+                              }
+                              disabled={updatingId === item._id}
+                              className="flex-1 rounded-xl bg-green-600 px-4 py-3"
+                            >
+                              <Text className="text-center text-white font-bold">
+                                {updatingId === item._id
+                                  ? "Updating..."
+                                  : "Approve Request"}
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() =>
+                                handleRescheduleDecision(item._id, "rejected")
+                              }
+                              disabled={updatingId === item._id}
+                              className="flex-1 rounded-xl bg-orange-600 px-4 py-3"
+                            >
+                              <Text className="text-center text-white font-bold">
+                                {updatingId === item._id
+                                  ? "Updating..."
+                                  : "Reject Request"}
+                              </Text>
+                            </TouchableOpacity>
+                          </>
+                        ) : item.status === "pending" ? (
+                          <>
+                            <TouchableOpacity
+                              onPress={() =>
+                                handleStatusChange(item._id, "confirmed")
+                              }
+                              disabled={updatingId === item._id}
+                              className="flex-1 rounded-xl bg-blue-600 px-4 py-3"
+                            >
+                              <Text className="text-center text-white font-bold">
+                                {updatingId === item._id
+                                  ? "Updating..."
+                                  : "Approve"}
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() =>
+                                handleStatusChange(item._id, "rejected")
+                              }
+                              disabled={updatingId === item._id}
+                              className="flex-1 rounded-xl bg-red-600 px-4 py-3"
+                            >
+                              <Text className="text-center text-white font-bold">
+                                {updatingId === item._id
+                                  ? "Updating..."
+                                  : "Reject"}
+                              </Text>
+                            </TouchableOpacity>
+                          </>
+                        ) : (
+                          <>
+                            <TouchableOpacity
+                              onPress={() =>
+                                handleStatusChange(item._id, "completed")
+                              }
+                              disabled={updatingId === item._id}
+                              className="flex-1 rounded-xl bg-green-600 px-4 py-3"
+                            >
+                              <Text className="text-center text-white font-bold">
+                                {updatingId === item._id
+                                  ? "Updating..."
+                                  : "Mark Completed"}
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() =>
+                                handleStatusChange(item._id, "cancelled")
+                              }
+                              disabled={updatingId === item._id}
+                              className="flex-1 rounded-xl bg-red-600 px-4 py-3"
+                            >
+                              <Text className="text-center text-white font-bold">
+                                {updatingId === item._id
+                                  ? "Updating..."
+                                  : "Cancel"}
+                              </Text>
+                            </TouchableOpacity>
+                          </>
+                        )}
                       </View>
                     </View>
                   );
