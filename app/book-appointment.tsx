@@ -205,68 +205,83 @@ export default function BookAppointment() {
                     </View>
                   ) : (
                     <View className="w-full">
-                      <Text className="text-gray-600 mb-4 text-center">
-                        Payment failed? Click `Try Again` to retry payment.
+                      <Text className="text-gray-600 mb-4 text-center text-sm">
+                        Payment process exited. Click 'Confirm & Continue' if
+                        payment was successful, or 'Try Again' to retry.
                       </Text>
-                      <TouchableOpacity
-                        onPress={async () => {
-                          setPaying(true);
-                          try {
-                            const upiId = PAYMENT_UPI_ID;
-                            const payeeName = PAYMENT_NAME;
-                            const amount = String(selectedDoctor.fees || "0");
-                            const txnRef = `sountabeeb_${Date.now()}`;
-                            const tn = encodeURIComponent(
-                              `Consultation ${txnRef}`,
-                            );
-                            const upiUrl = `upi://pay?pa=${encodeURIComponent(
-                              upiId,
-                            )}&pn=${encodeURIComponent(payeeName)}&am=${encodeURIComponent(
-                              amount,
-                            )}&cu=INR&tn=${tn}`;
-
-                            const can = await Linking.canOpenURL(upiUrl);
-                            if (!can) {
-                              Alert.alert(
-                                "No UPI app",
-                                "No UPI app found to handle payment. Install Google Pay, PhonePe, Paytm, or Amazon Pay.",
+                      <View className="flex-row gap-3">
+                        <TouchableOpacity
+                          onPress={async () => {
+                            setPaying(true);
+                            try {
+                              const upiId = PAYMENT_UPI_ID;
+                              const payeeName = PAYMENT_NAME;
+                              const amount = String(selectedDoctor.fees || "0");
+                              const txnRef = `sountabeeb_${Date.now()}`;
+                              const tn = encodeURIComponent(
+                                `Consultation ${txnRef}`,
                               );
+                              const upiUrl = `upi://pay?pa=${encodeURIComponent(
+                                upiId,
+                              )}&pn=${encodeURIComponent(payeeName)}&am=${encodeURIComponent(
+                                amount,
+                              )}&cu=INR&tn=${tn}`;
+
+                              const can = await Linking.canOpenURL(upiUrl);
+                              if (!can) {
+                                Alert.alert(
+                                  "No UPI app",
+                                  "No UPI app found to handle payment. Install Google Pay, PhonePe, Paytm, or Amazon Pay.",
+                                );
+                                setPaying(false);
+                                return;
+                              }
+
+                              await Linking.openURL(upiUrl);
+
+                              // Update payment meta
+                              setPaymentInfo({
+                                method: "UPI",
+                                amount,
+                                txnRef,
+                                upiId,
+                              });
+
+                              // Auto-proceed after user returns from UPI app
+                              setTimeout(() => {
+                                setPaid(true);
+                                setShowPayment(false);
+                              }, 1500);
+                            } catch (e) {
+                              console.warn(e);
+                              Alert.alert("Payment failed to start");
+                            } finally {
                               setPaying(false);
-                              return;
                             }
+                          }}
+                          className="flex-1 px-4 py-3 rounded-xl bg-blue-600"
+                        >
+                          {paying ? (
+                            <ActivityIndicator color="#fff" />
+                          ) : (
+                            <Text className="text-white font-semibold text-center">
+                              Try Again
+                            </Text>
+                          )}
+                        </TouchableOpacity>
 
-                            await Linking.openURL(upiUrl);
-
-                            // Update payment meta
-                            setPaymentInfo({
-                              method: "UPI",
-                              amount,
-                              txnRef,
-                              upiId,
-                            });
-
-                            // Auto-proceed after user returns from UPI app
-                            setTimeout(() => {
-                              setPaid(true);
-                              setShowPayment(false);
-                            }, 1500);
-                          } catch (e) {
-                            console.warn(e);
-                            Alert.alert("Payment failed to start");
-                          } finally {
-                            setPaying(false);
-                          }
-                        }}
-                        className="w-full px-4 py-3 rounded-xl bg-blue-600"
-                      >
-                        {paying ? (
-                          <ActivityIndicator color="#fff" />
-                        ) : (
+                        <TouchableOpacity
+                          onPress={() => {
+                            setPaid(true);
+                            setShowPayment(false);
+                          }}
+                          className="flex-1 px-4 py-3 rounded-xl bg-green-600"
+                        >
                           <Text className="text-white font-semibold text-center">
-                            Try Again
+                            Continue
                           </Text>
-                        )}
-                      </TouchableOpacity>
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   )}
                 </View>

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authMiddleware");
+const { validate, validateCreateAppointment } = require("../utils/validators");
 const {
   create,
   listForUser,
@@ -14,7 +15,7 @@ const {
   recordPaymentStatus,
 } = require("../controllers/appointmentController");
 
-router.post("/", auth, create);
+router.post("/", auth, validateCreateAppointment, validate, create);
 router.get("/", auth, listForUser);
 router.post("/:id/cancel", auth, cancel);
 router.put("/:id/status", auth, updateStatus);

@@ -13,6 +13,12 @@ const transporter = nodemailer.createTransport({
     user: emailUser,
     pass: emailPassword,
   },
+  requireTLS: emailPort === 587,
+  tls: {
+    rejectUnauthorized: false,
+  },
+  connectionTimeout: Number(process.env.EMAIL_CONNECTION_TIMEOUT || 10000),
+  greetingTimeout: Number(process.env.EMAIL_GREETING_TIMEOUT || 5000),
 });
 transporter.verify((error, success) => {
   if (error) {

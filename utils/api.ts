@@ -10,6 +10,7 @@ async function getToken(key = "token") {
 
 function buildHeaders(token?: string | null) {
   return {
+    Accept: "application/json",
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };

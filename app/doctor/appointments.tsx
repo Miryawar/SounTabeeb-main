@@ -36,7 +36,13 @@ export default function DoctorAppointments() {
     setLoadingAppointments(true);
     try {
       const res = await apiGet("/api/doctors/me/appointments", "doctorToken");
-      const data = await res.json();
+      let data: any = [];
+      try {
+        data = await res.json();
+      } catch {
+        const text = await res.text();
+        data = { message: text || "Failed to load appointments" };
+      }
       if (res.ok && Array.isArray(data)) {
         setAppointments(data);
       } else {
@@ -60,7 +66,13 @@ export default function DoctorAppointments() {
         { status },
         "doctorToken",
       );
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        const text = await res.text();
+        data = { message: text || "Unable to update status" };
+      }
       if (!res.ok) {
         Alert.alert(data.message || "Unable to update status");
       } else {
@@ -87,7 +99,14 @@ export default function DoctorAppointments() {
         { decision },
         "doctorToken",
       );
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch (parseErr) {
+        const text = await res.text();
+        data = { message: text || "Unable to process reschedule decision" };
+      }
+
       if (!res.ok) {
         Alert.alert(data.message || "Unable to submit reschedule decision");
       } else {
@@ -181,40 +200,41 @@ export default function DoctorAppointments() {
                           Doctor Approval: {item.approval.status}
                         </Text>
                       )}
-                      {item.rescheduleRequest?.status && (
-                        <View className="mt-3 rounded-2xl bg-slate-50 p-3 border border-slate-200">
-                          <Text className="text-sm font-semibold text-slate-900">
-                            Reschedule Request
-                          </Text>
-                          <Text className="text-sm text-slate-600 mt-1">
-                            Requested by: {item.rescheduleRequest.requestedBy}
-                          </Text>
-                          <Text className="text-sm text-slate-600">
-                            Date:{" "}
-                            {item.rescheduleRequest.requestedDate
-                              ? new Date(
-                                  item.rescheduleRequest.requestedDate,
-                                ).toLocaleDateString("en-IN", {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric",
-                                })
-                              : "N/A"}
-                          </Text>
-                          <Text className="text-sm text-slate-600">
-                            Slot:{" "}
-                            {item.rescheduleRequest.requestedSlot || "N/A"}
-                          </Text>
-                          <Text className="text-sm text-slate-600">
-                            Reason:{" "}
-                            {item.rescheduleRequest.reason ||
-                              "No reason provided"}
-                          </Text>
-                          <Text className="text-sm text-slate-600 mt-1">
-                            Request status: {item.rescheduleRequest.status}
-                          </Text>
-                        </View>
-                      )}
+                      {item.rescheduleRequest?.requestedDate &&
+                        item.rescheduleRequest?.requestedSlot && (
+                          <View className="mt-3 rounded-2xl bg-slate-50 p-3 border border-slate-200">
+                            <Text className="text-sm font-semibold text-slate-900">
+                              Reschedule Request
+                            </Text>
+                            <Text className="text-sm text-slate-600 mt-1">
+                              Requested by: {item.rescheduleRequest.requestedBy}
+                            </Text>
+                            <Text className="text-sm text-slate-600">
+                              Date:{" "}
+                              {item.rescheduleRequest.requestedDate
+                                ? new Date(
+                                    item.rescheduleRequest.requestedDate,
+                                  ).toLocaleDateString("en-IN", {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                  })
+                                : "N/A"}
+                            </Text>
+                            <Text className="text-sm text-slate-600">
+                              Slot:{" "}
+                              {item.rescheduleRequest.requestedSlot || "N/A"}
+                            </Text>
+                            <Text className="text-sm text-slate-600">
+                              Reason:{" "}
+                              {item.rescheduleRequest.reason ||
+                                "No reason provided"}
+                            </Text>
+                            <Text className="text-sm text-slate-600 mt-1">
+                              Request status: {item.rescheduleRequest.status}
+                            </Text>
+                          </View>
+                        )}
                       <View className="mt-4 flex-row gap-3">
                         {item.rescheduleRequest?.status === "pending" ? (
                           <>

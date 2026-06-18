@@ -129,10 +129,10 @@ const validateUpdateDoctor = [
 // Appointment Validators
 const validateCreateAppointment = [
   body("doctorId").trim().notEmpty().withMessage("Doctor ID is required"),
-  body("appointmentDate")
+  body("date")
     .isISO8601()
     .withMessage("Please provide a valid date (ISO 8601 format)"),
-  body("timeSlot")
+  body("slot")
     .trim()
     .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
     .withMessage("Please provide a valid time slot (HH:MM format)"),

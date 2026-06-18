@@ -247,12 +247,31 @@ export default function DateFormat({
             }
             const res = await apiPost("/api/appointments", body);
             const data = await res.json();
-            if (!res.ok) return Alert.alert(data.message || "Booking failed");
-            Alert.alert("Success", "Appointment booked");
-            router.replace("/(auth)/(tabs)/appointment");
+            if (!res.ok) {
+              const reason = data?.message || "Booking failed";
+              router.replace(
+                `/payment-status?status=failed&failureReason=${encodeURIComponent(
+                  reason,
+                )}`,
+              );
+              return;
+            }
+            router.replace(
+              `/payment-status?status=success&amount=${encodeURIComponent(
+                paymentInfo?.amount || "0",
+              )}&doctorName=${encodeURIComponent(
+                doctor?.name || "Doctor",
+              )}&transactionRef=${encodeURIComponent(
+                paymentInfo?.txnRef || paymentInfo?.transactionRef || "",
+              )}`,
+            );
           } catch (err: any) {
             console.warn(err);
-            Alert.alert("Server error");
+            router.replace(
+              `/payment-status?status=failed&failureReason=${encodeURIComponent(
+                err?.message || "Server error",
+              )}`,
+            );
           }
         }}
         className=" bg-blue-600 p-4  rounded-full items-center mt-4"

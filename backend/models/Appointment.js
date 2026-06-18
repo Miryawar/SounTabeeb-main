@@ -25,21 +25,27 @@ const appointmentSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now },
   },
   rescheduleRequest: {
-    requestedBy: {
-      type: String,
-      enum: ["user", "doctor"],
-      default: "user",
-    },
-    requestedDate: Date,
-    requestedSlot: String,
-    reason: String,
-    status: {
-      type: String,
-      enum: ["pending", "approved", "rejected", "cancelled"],
-      default: "pending",
-    },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
+    type: new mongoose.Schema(
+      {
+        requestedBy: {
+          type: String,
+          enum: ["user", "doctor"],
+          default: "user",
+        },
+        requestedDate: Date,
+        requestedSlot: String,
+        reason: String,
+        status: {
+          type: String,
+          enum: ["pending", "approved", "rejected", "cancelled"],
+          default: "pending",
+        },
+        createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date, default: Date.now },
+      },
+      { _id: false },
+    ),
+    default: undefined,
   },
   payment: {
     type: mongoose.Schema.Types.Mixed,

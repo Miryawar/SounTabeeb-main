@@ -91,9 +91,43 @@ const startServer = async () => {
     res.status(500).json({ message: "Server error" });
   });
 
-  app.listen(PORT, "0.0.0.0", () =>
-    console.log(`Server running on port ${PORT}`),
-  );
+  const server = app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+
+  // Enable socket reuse to prevent EADDRINUSE on restart
+  server.on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(
+        `Port ${PORT} is already in use. Waiting 3 seconds before retry...`,
+      );
+      setTimeout(() => {
+        server.close();
+        server.listen(PORT, "0.0.0.0", () => {
+          console.log(`Server running on port ${PORT}`);
+        });
+      }, 3000);
+    } else {
+      throw err;
+    }
+  });
+
+  // Graceful shutdown
+  const gracefulShutdown = () => {
+    console.log("Shutting down gracefully...");
+    server.close(() => {
+      console.log("Server closed");
+      process.exit(0);
+    });
+    // Force exit if shutdown takes too long
+    setTimeout(() => {
+      console.error("Forcing shutdown...");
+      process.exit(1);
+    }, 5000);
+  };
+
+  process.on("SIGTERM", gracefulShutdown);
+  process.on("SIGINT", gracefulShutdown);
 };
 
 startServer().catch((err) => {

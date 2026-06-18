@@ -5,6 +5,40 @@ const Transaction = require("../models/Transaction");
 const notificationService = require("../utils/notificationService");
 const paymentService = require("../utils/paymentService");
 
+const createTransactionRecord = async ({
+  userId,
+  doctorId,
+  appointmentId,
+  paymentInfo,
+  status = "pending",
+  failureReason,
+}) => {
+  const transactionRef =
+    paymentInfo?.txnRef ||
+    paymentInfo?.transactionRef ||
+    paymentInfo?.paymentId ||
+    paymentInfo?.orderId;
+
+  const transaction = new Transaction({
+    user: userId,
+    doctor: doctorId,
+    appointment: appointmentId,
+    amount: Number(paymentInfo?.amount || 0),
+    currency: paymentInfo?.currency || "INR",
+    method: paymentInfo?.method || "UPI",
+    status,
+    transactionRef,
+    upiId: paymentInfo?.upiId,
+    orderId: paymentInfo?.orderId,
+    paymentId: paymentInfo?.paymentId,
+    failureReason: failureReason || paymentInfo?.failureReason || null,
+    metadata: paymentInfo,
+  });
+
+  await transaction.save();
+  return transaction;
+};
+
 const normalizeAppointmentDate = (dateString) => {
   const appointmentDate = new Date(dateString);
   if (Number.isNaN(appointmentDate.getTime())) {
@@ -196,9 +230,26 @@ exports.createRazorpayOrder = async (req, res) => {
 
 exports.verifyRazorpayPayment = async (req, res) => {
   try {
-    const { orderId, paymentId, signature, doctorId, date, slot } = req.body;
+    const {
+      orderId,
+      paymentId,
+      signature,
+      doctorId,
+      date,
+      slot,
+      appointmentDate: appointmentDateInput,
+      timeSlot,
+    } = req.body;
+    const slotInput = slot || timeSlot;
 
-    if (!orderId || !paymentId || !signature || !doctorId || !date || !slot) {
+    if (
+      !orderId ||
+      !paymentId ||
+      !signature ||
+      !doctorId ||
+      !appointmentDateInput ||
+      !slotInput
+    ) {
       return res.status(400).json({
         message:
           "orderId, paymentId, signature, doctorId, date and slot are required",
@@ -223,7 +274,7 @@ exports.verifyRazorpayPayment = async (req, res) => {
       });
     }
 
-    const appointmentDate = normalizeAppointmentDate(date);
+    const appointmentDate = normalizeAppointmentDate(appointmentDateInput);
     if (!appointmentDate) {
       return res.status(400).json({ message: "Invalid appointment date" });
     }
@@ -233,7 +284,7 @@ exports.verifyRazorpayPayment = async (req, res) => {
       return res.status(404).json({ message: "Doctor not found" });
     }
 
-    if (!isWithinWorkingHours(doctor, appointmentDate, slot)) {
+    if (!isWithinWorkingHours(doctor, appointmentDate, slotInput)) {
       return res.status(400).json({
         message:
           "The doctor is not available at this time. Please choose a slot within their working schedule.",
@@ -250,7 +301,7 @@ exports.verifyRazorpayPayment = async (req, res) => {
     const existing = await Appointment.findOne({
       doctor: doctor._id,
       date: appointmentDate,
-      slot,
+      slot: slotInput,
       status: { $in: ["pending", "confirmed"] },
     });
     if (existing) {
@@ -263,7 +314,7 @@ exports.verifyRazorpayPayment = async (req, res) => {
       user: req.user._id,
       doctor: doctor._id,
       date: appointmentDate,
-      slot,
+      slot: slotInput,
       status: "pending",
       approval: {
         status: "pending",
@@ -290,6 +341,17 @@ exports.verifyRazorpayPayment = async (req, res) => {
       throw saveErr;
     }
 
+    const transaction = await createTransactionRecord({
+      userId: req.user._id,
+      doctorId: doctor._id,
+      appointmentId: appt._id,
+      paymentInfo: appt.payment,
+      status: "success",
+    });
+
+    appt.transactionId = transaction._id;
+    await appt.save();
+
     await appt.populate("doctor");
     const user = await User.findById(req.user._id);
     if (user) {
@@ -312,10 +374,18 @@ exports.verifyRazorpayPayment = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  const { doctorId, date, slot, paymentInfo } = req.body;
+  const {
+    doctorId,
+    date,
+    slot,
+    paymentInfo,
+    appointmentDate: appointmentDateInput,
+    timeSlot,
+  } = req.body;
+  const slotInput = slot || timeSlot;
 
   try {
-    if (!doctorId || !date || !slot) {
+    if (!doctorId || !appointmentDateInput || !slotInput) {
       return res
         .status(400)
         .json({ message: "Doctor, date and slot are required" });
@@ -333,7 +403,7 @@ exports.create = async (req, res) => {
       });
     }
 
-    const appointmentDate = normalizeAppointmentDate(date);
+    const appointmentDate = normalizeAppointmentDate(appointmentDateInput);
     if (!appointmentDate) {
       return res.status(400).json({ message: "Invalid appointment date" });
     }
@@ -343,7 +413,7 @@ exports.create = async (req, res) => {
       return res.status(404).json({ message: "Doctor not found" });
     }
 
-    if (!isWithinWorkingHours(doctor, appointmentDate, slot)) {
+    if (!isWithinWorkingHours(doctor, appointmentDate, slotInput)) {
       return res.status(400).json({
         message:
           "The doctor is not available at this time. Please choose a slot within their working schedule.",
@@ -360,7 +430,7 @@ exports.create = async (req, res) => {
     const existing = await Appointment.findOne({
       doctor: doctor._id,
       date: appointmentDate,
-      slot,
+      slot: slotInput,
       status: { $in: ["pending", "confirmed"] },
     });
     if (existing) {
@@ -373,7 +443,7 @@ exports.create = async (req, res) => {
       user: req.user._id,
       doctor: doctor._id,
       date: appointmentDate,
-      slot,
+      slot: slotInput,
       status: "pending",
       approval: {
         status: "pending",
@@ -393,6 +463,17 @@ exports.create = async (req, res) => {
       throw saveErr;
     }
 
+    const transaction = await createTransactionRecord({
+      userId: req.user._id,
+      doctorId: doctor._id,
+      appointmentId: appt._id,
+      paymentInfo: appt.payment,
+      status: "success",
+    });
+
+    appt.transactionId = transaction._id;
+    await appt.save();
+
     await appt.populate("doctor");
     const user = await User.findById(req.user._id);
     if (user) {
@@ -408,7 +489,7 @@ exports.create = async (req, res) => {
     return res.json(appt);
   } catch (err) {
     console.error(err.message);
-    return res.status(500).send("Server error");
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -421,7 +502,7 @@ exports.listForUser = async (req, res) => {
     return res.json(appts);
   } catch (err) {
     console.error(err.message);
-    return res.status(500).send("Server error");
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -447,11 +528,9 @@ exports.requestReschedule = async (req, res) => {
     }
 
     if (["cancelled", "completed"].includes(appt.status)) {
-      return res
-        .status(400)
-        .json({
-          message: "Cannot reschedule a completed or cancelled appointment",
-        });
+      return res.status(400).json({
+        message: "Cannot reschedule a completed or cancelled appointment",
+      });
     }
 
     const appointmentDate = normalizeAppointmentDate(newDate);
@@ -522,7 +601,7 @@ exports.requestReschedule = async (req, res) => {
     return res.json(appt);
   } catch (err) {
     console.error(err.message || err);
-    return res.status(500).send("Server error");
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -544,13 +623,23 @@ exports.respondRescheduleRequest = async (req, res) => {
     }
 
     const doctor = await Doctor.findOne({ user: req.user._id });
-    if (!doctor || !appt.doctor.equals(doctor._id)) {
+    if (!doctor || !appt.doctor) {
+      return res.status(403).json({ message: "Not allowed" });
+    }
+
+    const apptDoctorId = appt.doctor._id
+      ? String(appt.doctor._id)
+      : String(appt.doctor);
+    const doctorId = String(doctor._id);
+    if (apptDoctorId !== doctorId) {
       return res.status(403).json({ message: "Not allowed" });
     }
 
     if (
       !appt.rescheduleRequest ||
-      appt.rescheduleRequest.status !== "pending"
+      appt.rescheduleRequest.status !== "pending" ||
+      !appt.rescheduleRequest.requestedDate ||
+      !appt.rescheduleRequest.requestedSlot
     ) {
       return res.status(400).json({ message: "No pending reschedule request" });
     }
@@ -590,7 +679,7 @@ exports.respondRescheduleRequest = async (req, res) => {
     return res.json(appt);
   } catch (err) {
     console.error(err.message || err);
-    return res.status(500).send("Server error");
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -639,6 +728,7 @@ exports.recordPaymentStatus = async (req, res) => {
   }
 };
 
+exports.cancel = async (req, res) => {
   try {
     const appt = await Appointment.findById(req.params.id).populate("doctor");
     if (!appt) {
@@ -683,7 +773,7 @@ exports.recordPaymentStatus = async (req, res) => {
     return res.json(appt);
   } catch (err) {
     console.error(err.message);
-    return res.status(500).send("Server error");
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -739,6 +829,6 @@ exports.updateStatus = async (req, res) => {
     return res.json(appt);
   } catch (err) {
     console.error(err.message);
-    return res.status(500).send("Server error");
+    return res.status(500).json({ message: "Server error" });
   }
 };

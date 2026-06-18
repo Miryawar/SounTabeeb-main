@@ -109,6 +109,20 @@ export default function Profile() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            onPress={() => router.push("/transaction-history")}
+            className="flex flex-row items-center justify-between bg-gray-200 px-2 py-3 rounded-lg mb-4"
+          >
+            <Text className="text-lg font-medium text-gray-600">
+              Transaction History
+            </Text>
+            <Ionicons
+              name="chevron-forward-sharp"
+              size={24}
+              color={"gray"}
+            ></Ionicons>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             onPress={() => router.push("/medical-records")}
             className="flex flex-row items-center justify-between bg-gray-200 px-2 py-3 rounded-lg mb-4"
           >
