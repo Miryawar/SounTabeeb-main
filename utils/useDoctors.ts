@@ -24,7 +24,7 @@ const useDoctors = () => {
               degree: d.degree || d.qualification || "MBBS",
               experience: d.experience || d.years || "1 Year",
               about: d.bio || d.about || "",
-              fees: d.fees || d.fee || 5,
+              fees: d.fees || d.fee || 50,
               workingHours: Array.isArray(d.workingHours) ? d.workingHours : [],
               leaves: Array.isArray(d.leaves) ? d.leaves : [],
               // backend may provide an `available` flag; default to true when missing

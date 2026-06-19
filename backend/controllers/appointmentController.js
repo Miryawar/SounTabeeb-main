@@ -145,11 +145,11 @@ const sendAppointmentRequestedNotifications = async (
     notificationService
       .sendPushNotification(
         user.pushToken,
-        "Appointment Requested",
-        `Your appointment request for ${slot} is pending doctor's approval.`,
+        "Appointment Confirmed",
+        `Your appointment for ${slot} has been confirmed.`,
         {
           appointmentId: appt._id.toString(),
-          type: "appointment_requested",
+          type: "appointment_confirmed",
         },
       )
       .catch((err) => console.error("Confirmation push error:", err));
@@ -158,11 +158,11 @@ const sendAppointmentRequestedNotifications = async (
   if (doctor && doctor.user) {
     await addInAppNotification(
       doctor.user,
-      "New Appointment Request",
-      `${user.name} has requested an appointment for ${slot}.`,
+      "New Appointment Booking",
+      `${user.name} has booked an appointment for ${slot}.`,
       {
         appointmentId: appt._id.toString(),
-        type: "appointment_request",
+        type: "appointment_booking",
       },
     );
 
@@ -172,11 +172,11 @@ const sendAppointmentRequestedNotifications = async (
         notificationService
           .sendPushNotification(
             doctorUser.pushToken,
-            "New Appointment Request",
-            `${user.name} has requested an appointment for ${slot}.`,
+            "New Appointment Booking",
+            `${user.name} has booked an appointment for ${slot}.`,
             {
               appointmentId: appt._id.toString(),
-              type: "appointment_request",
+              type: "appointment_booking",
             },
           )
           .catch((err) => console.error("Doctor push error:", err));
@@ -264,7 +264,12 @@ exports.createRazorpayOrder = async (req, res) => {
     const { order, amount, currency } =
       await paymentService.createRazorpayOrder(doctorId);
 
-    return res.json({ order, amount, currency });
+    return res.json({
+      order,
+      amount,
+      currency,
+      keyId: process.env.RAZORPAY_KEY_ID,
+    });
   } catch (err) {
     console.error("Razorpay order creation error:", err.message || err);
     return res.status(err.status || 500).json({
@@ -360,9 +365,9 @@ exports.verifyRazorpayPayment = async (req, res) => {
       doctor: doctor._id,
       date: appointmentDate,
       slot: slotInput,
-      status: "pending",
+      status: "confirmed",
       approval: {
-        status: "pending",
+        status: "approved",
       },
       payment: {
         method: "razorpay",
@@ -489,9 +494,9 @@ exports.create = async (req, res) => {
       doctor: doctor._id,
       date: appointmentDate,
       slot: slotInput,
-      status: "pending",
+      status: "confirmed",
       approval: {
-        status: "pending",
+        status: "approved",
       },
       payment: paymentInfo,
     };

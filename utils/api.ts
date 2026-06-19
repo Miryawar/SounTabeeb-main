@@ -34,6 +34,22 @@ export async function apiPost(path: string, body: any, tokenKey = "token") {
   return res;
 }
 
+export async function createRazorpayOrder(doctorId: string) {
+  const res = await apiPost(
+    "/api/appointments/razorpay/order",
+    { doctorId }
+  );
+  return await res.json();
+}
+
+export async function verifyRazorpayPayment(data: any) {
+  const res = await apiPost(
+    "/api/appointments/razorpay/verify",
+    data
+  );
+  return await res.json();
+}
+
 export async function apiPut(path: string, body: any, tokenKey = "token") {
   const token = await getToken(tokenKey);
   const res = await fetch(`${API_BASE}${path}`, {

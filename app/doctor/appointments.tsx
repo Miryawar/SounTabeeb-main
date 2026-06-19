@@ -195,11 +195,6 @@ export default function DoctorAppointments() {
                       <Text className="text-gray-600 mt-1">
                         Status: {item.status}
                       </Text>
-                      {item.approval?.status && (
-                        <Text className="text-gray-600 mt-1">
-                          Doctor Approval: {item.approval.status}
-                        </Text>
-                      )}
                       {item.rescheduleRequest?.requestedDate &&
                         item.rescheduleRequest?.requestedSlot && (
                           <View className="mt-3 rounded-2xl bg-slate-50 p-3 border border-slate-200">

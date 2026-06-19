@@ -32,7 +32,7 @@ exports.createRazorpayOrder = async (doctorId, currency = "INR") => {
   }
 
   const amount = Math.round(Number(doctor.fees) * 100);
-  const receipt = `consultation_${doctorId}_${Date.now()}`;
+  const receipt = `consult_${Date.now()}`;
 
   const razorpay = getRazorpayClient();
   const order = await razorpay.orders.create({

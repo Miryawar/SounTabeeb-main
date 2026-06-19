@@ -1,19 +1,20 @@
 import DateFormat from "@/components/DateFormat";
+import { createRazorpayOrder } from "@/utils/api";
 import useDoctors from "@/utils/useDoctors";
 import { Ionicons } from "@expo/vector-icons";
 import { useGlobalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Linking,
-    Modal,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import RazorpayCheckout from "react-native-razorpay";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function BookAppointment() {
@@ -140,54 +141,116 @@ export default function BookAppointment() {
                         <Text>Cancel</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
+                        // onPress={async () => {
+                        //   setPaying(true);
+                        //   try {
+                        //     // Use phone-based UPI VPA. Payment goes to the admin receiver.
+                        //     const upiId = PAYMENT_UPI_ID;
+                        //     const payeeName = PAYMENT_NAME;
+                        //     const amount = String(selectedDoctor.fees || "0");
+                        //     const txnRef = `sountabeeb_${Date.now()}`;
+                        //     const tn = encodeURIComponent(
+                        //       `Consultation ${txnRef}`,
+                        //     );
+                        //     const upiUrl = `upi://pay?pa=${encodeURIComponent(
+                        //       upiId,
+                        //     )}&pn=${encodeURIComponent(payeeName)}&am=${encodeURIComponent(
+                        //       amount,
+                        //     )}&cu=INR&tn=${tn}`;
+
+                        //     const can = await Linking.canOpenURL(upiUrl);
+                        //     if (!can) {
+                        //       Alert.alert(
+                        //         "No UPI app",
+                        //         "No UPI app found to handle payment. Install Google Pay, PhonePe, Paytm, or Amazon Pay.",
+                        //       );
+                        //       setPaying(false);
+                        //       return;
+                        //     }
+
+                        //     await Linking.openURL(upiUrl);
+
+                        //     // store payment meta
+                        //     setPaymentInfo({
+                        //       method: "UPI",
+                        //       amount,
+                        //       txnRef,
+                        //       upiId,
+                        //     });
+
+                        //     // Show try again button
+                        //     setPaymentAttempted(true);
+
+                        //     // Auto-proceed after user returns from UPI app (payment or not - backend will validate)
+                        //     setTimeout(() => {
+                        //       setPaid(true);
+                        //       setShowPayment(false);
+                        //     }, 1500);
+                        //   } catch (e) {
+                        //     console.warn(e);
+                        //     Alert.alert("Payment failed to start");
+                        //   } finally {
+                        //     setPaying(false);
+                        //   }
+                        // }}
                         onPress={async () => {
                           setPaying(true);
+
                           try {
-                            // Use phone-based UPI VPA. Payment goes to the admin receiver.
-                            const upiId = PAYMENT_UPI_ID;
-                            const payeeName = PAYMENT_NAME;
-                            const amount = String(selectedDoctor.fees || "0");
-                            const txnRef = `sountabeeb_${Date.now()}`;
-                            const tn = encodeURIComponent(
-                              `Consultation ${txnRef}`,
-                            );
-                            const upiUrl = `upi://pay?pa=${encodeURIComponent(
-                              upiId,
-                            )}&pn=${encodeURIComponent(payeeName)}&am=${encodeURIComponent(
-                              amount,
-                            )}&cu=INR&tn=${tn}`;
+                            const orderResponse =
+                              await createRazorpayOrder(doctorId);
 
-                            const can = await Linking.canOpenURL(upiUrl);
-                            if (!can) {
-                              Alert.alert(
-                                "No UPI app",
-                                "No UPI app found to handle payment. Install Google Pay, PhonePe, Paytm, or Amazon Pay.",
-                              );
-                              setPaying(false);
-                              return;
-                            }
+                            // if (!orderResponse.success) {
+                            //   Alert.alert(
+                            //     "Payment Error",
+                            //     orderResponse.message || "Unable to create payment order"
+                            //   );
+                            //   return;
+                            // }
+                            console.log("ORDER RESPONSE:", orderResponse);
 
-                            await Linking.openURL(upiUrl);
+                            const options = {
+                              description: "Doctor Consultation",
+                              image:
+                                "https://razorpay.com/assets/razorpay-glyph.svg",
+                              currency: "INR",
+                              key: orderResponse.keyId,
+                              amount: orderResponse.amount,
+                              name: "SounTabeeb",
+                              order_id: orderResponse.order.id,
 
-                            // store payment meta
+                              method: {
+                                upi: true,
+                                card: false,
+                                netbanking: false,
+                                wallet: false,
+                              },
+                              theme: {
+                                color: "#2563EB",
+                              },
+                            };
+
+                            console.log("KEY ID:", orderResponse.keyId);
+                            console.log("ORDER ID:", orderResponse.order?.id);
+                            const paymentResult =
+                              await RazorpayCheckout.open(options);
+
                             setPaymentInfo({
-                              method: "UPI",
-                              amount,
-                              txnRef,
-                              upiId,
+                              method: "Razorpay",
+                              amount: orderResponse.amount / 100,
+                              orderId: paymentResult.razorpay_order_id,
+                              paymentId: paymentResult.razorpay_payment_id,
+                              signature: paymentResult.razorpay_signature,
+                              transactionRef: paymentResult.razorpay_payment_id,
                             });
 
-                            // Show try again button
-                            setPaymentAttempted(true);
-
-                            // Auto-proceed after user returns from UPI app (payment or not - backend will validate)
-                            setTimeout(() => {
-                              setPaid(true);
-                              setShowPayment(false);
-                            }, 1500);
-                          } catch (e) {
-                            console.warn(e);
-                            Alert.alert("Payment failed to start");
+                            setPaid(true);
+                            setShowPayment(false);
+                          } catch (error: any) {
+                            Alert.alert(
+                              "Payment Failed",
+                              error?.description || "Payment cancelled",
+                            );
                           } finally {
                             setPaying(false);
                           }
@@ -198,7 +261,7 @@ export default function BookAppointment() {
                           <ActivityIndicator color="#fff" />
                         ) : (
                           <Text className="text-white font-semibold">
-                            Pay to SounTabeeb
+                            Pay with Razorpay
                           </Text>
                         )}
                       </TouchableOpacity>
