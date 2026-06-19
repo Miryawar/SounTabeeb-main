@@ -5,14 +5,14 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -26,6 +26,7 @@ export default function DoctorProfile() {
     speciality: "",
     qualification: "",
     experience: "",
+    fees: "",
     bio: "",
   });
 
@@ -42,6 +43,7 @@ export default function DoctorProfile() {
         speciality: doctor.speciality || "",
         qualification: doctor.qualification || "",
         experience: doctor.experience || "",
+        fees: doctor.fees ? String(doctor.fees) : "",
         bio: doctor.bio || "",
       });
       setProfilePictureRemoved(false);
@@ -86,7 +88,7 @@ export default function DoctorProfile() {
   };
 
   const handleSave = async () => {
-    let payload = { ...form };
+    const payload: Record<string, any> = { ...form };
     try {
       // If profilePicture is a local file URI, convert to base64 data URI for upload
       if (
@@ -96,12 +98,23 @@ export default function DoctorProfile() {
       ) {
         const base64 = await FileSystem.readAsStringAsync(
           payload.profilePicture,
-          { encoding: FileSystem.EncodingType.Base64 },
+          { encoding: "base64" },
         );
         payload.profilePicture = `data:image/jpeg;base64,${base64}`;
       }
     } catch (e) {
       console.warn("Failed to read image file for upload", e);
+    }
+
+    const feeValue = form.fees ? Number(form.fees) : undefined;
+    if (form.fees && Number.isNaN(feeValue)) {
+      return Alert.alert("Invalid fee", "Please enter a valid numeric fee.");
+    }
+
+    if (feeValue !== undefined) {
+      payload.fees = feeValue;
+    } else {
+      delete payload.fees;
     }
 
     const { ok, message } = await updateDoctorProfile(payload);
@@ -245,6 +258,25 @@ export default function DoctorProfile() {
                 </Text>
               )}
             </View>
+
+            <View>
+              <Text className="text-sm text-gray-500">
+                Consultation Fee (Rs)
+              </Text>
+              {editing ? (
+                <TextInput
+                  value={form.fees}
+                  onChangeText={(val) => handleChange("fees", val)}
+                  placeholder="e.g., 500"
+                  keyboardType="numeric"
+                  className="border border-gray-200 rounded-2xl px-4 py-3 mt-2"
+                />
+              ) : (
+                <Text className="text-gray-700 mt-2">
+                  Rs {doctor.fees ?? "0"}
+                </Text>
+              )}
+            </View>
           </View>
 
           <View className="space-y-4">
@@ -281,7 +313,7 @@ export default function DoctorProfile() {
             <TouchableOpacity
               onPress={async () => {
                 await logout();
-                router.replace("/doctor/logindoctor/login");
+                router.replace("/doctor/login");
               }}
               className="rounded-3xl bg-red-600 py-4 items-center"
             >
