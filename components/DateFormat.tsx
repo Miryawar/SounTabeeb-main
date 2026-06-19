@@ -162,7 +162,6 @@ export default function DateFormat({
     );
   }
 
-  const selectedDate = new Date(dates[isSelectedIndex]);
   const times = getAvailableTimeSlots(
     selectedDate,
     doctor?.workingHours,
