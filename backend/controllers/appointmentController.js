@@ -131,6 +131,12 @@ const sendAppointmentRequestedNotifications = async (
   slot,
   appt,
 ) => {
+  console.log("Sending appointment confirmation email to", user.email, {
+    doctorName: doctor.name,
+    appointmentDate,
+    slot,
+  });
+
   notificationService
     .sendAppointmentConfirmationEmail(
       user.email,
@@ -139,6 +145,13 @@ const sendAppointmentRequestedNotifications = async (
       appointmentDate,
       slot,
     )
+    .then((result) => {
+      if (!result?.ok) {
+        console.error("Confirmation email failed:", result);
+      } else {
+        console.log("Confirmation email sent successfully");
+      }
+    })
     .catch((err) => console.error("Confirmation email error:", err));
 
   if (user.pushToken) {
