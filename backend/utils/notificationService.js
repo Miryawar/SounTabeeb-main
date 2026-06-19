@@ -144,6 +144,43 @@ exports.sendBulkPushNotifications = async (
 /**
  * Send appointment confirmation email
  */
+exports.sendAccountCreatedEmail = async (email, userName, role = "user") => {
+  try {
+    const title =
+      role === "doctor" ? "Doctor Account Created" : "Account Created";
+    const bodyIntro =
+      role === "doctor"
+        ? "Your doctor account has been successfully created."
+        : "Your account has been successfully created.";
+
+    const mailOptions = {
+      from: emailUser,
+      to: email,
+      subject: `${title} - SounTabeeb`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563EB;">${title}</h2>
+          <p>Hi ${userName},</p>
+          <p>${bodyIntro}</p>
+          <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Name:</strong> ${userName}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Account Type:</strong> ${role === "doctor" ? "Doctor" : "Patient"}</p>
+          </div>
+          <p>Thank you for joining SounTabeeb. You can now log in and start using the service.</p>
+          <p>Best regards,<br>SounTabeeb Team</p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    return { ok: true, message: "Account created email sent successfully" };
+  } catch (err) {
+    console.error("Account created email error:", err);
+    return { ok: false, message: err.message };
+  }
+};
+
 exports.sendAppointmentConfirmationEmail = async (
   email,
   userName,

@@ -7,6 +7,7 @@ const {
   sendPasswordResetEmail,
   sendVerificationEmail,
 } = require("../utils/emailClient");
+const notificationService = require("../utils/notificationService");
 
 const EMAIL_CODE_TTL_MS = 1000 * 60 * 60 * 24; // 24h
 const PHONE_CODE_TTL_MS = 1000 * 60 * 10; // 10min
@@ -582,6 +583,11 @@ exports.completeRegister = async (req, res) => {
       user.doctor = doctorProfile._id;
       await user.save();
     }
+
+    // send welcome email after account creation, but do not block response on failure
+    notificationService
+      .sendAccountCreatedEmail(user.email, user.name, user.role)
+      .catch((err) => console.error("Account creation email error:", err));
 
     // remove pending
     await PendingUser.findByIdAndDelete(pending._id);
