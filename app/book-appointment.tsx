@@ -141,58 +141,7 @@ export default function BookAppointment() {
                         <Text>Cancel</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        // onPress={async () => {
-                        //   setPaying(true);
-                        //   try {
-                        //     // Use phone-based UPI VPA. Payment goes to the admin receiver.
-                        //     const upiId = PAYMENT_UPI_ID;
-                        //     const payeeName = PAYMENT_NAME;
-                        //     const amount = String(selectedDoctor.fees || "0");
-                        //     const txnRef = `sountabeeb_${Date.now()}`;
-                        //     const tn = encodeURIComponent(
-                        //       `Consultation ${txnRef}`,
-                        //     );
-                        //     const upiUrl = `upi://pay?pa=${encodeURIComponent(
-                        //       upiId,
-                        //     )}&pn=${encodeURIComponent(payeeName)}&am=${encodeURIComponent(
-                        //       amount,
-                        //     )}&cu=INR&tn=${tn}`;
-
-                        //     const can = await Linking.canOpenURL(upiUrl);
-                        //     if (!can) {
-                        //       Alert.alert(
-                        //         "No UPI app",
-                        //         "No UPI app found to handle payment. Install Google Pay, PhonePe, Paytm, or Amazon Pay.",
-                        //       );
-                        //       setPaying(false);
-                        //       return;
-                        //     }
-
-                        //     await Linking.openURL(upiUrl);
-
-                        //     // store payment meta
-                        //     setPaymentInfo({
-                        //       method: "UPI",
-                        //       amount,
-                        //       txnRef,
-                        //       upiId,
-                        //     });
-
-                        //     // Show try again button
-                        //     setPaymentAttempted(true);
-
-                        //     // Auto-proceed after user returns from UPI app (payment or not - backend will validate)
-                        //     setTimeout(() => {
-                        //       setPaid(true);
-                        //       setShowPayment(false);
-                        //     }, 1500);
-                        //   } catch (e) {
-                        //     console.warn(e);
-                        //     Alert.alert("Payment failed to start");
-                        //   } finally {
-                        //     setPaying(false);
-                        //   }
-                        // }}
+                       
                         onPress={async () => {
                           setPaying(true);
 
@@ -200,13 +149,7 @@ export default function BookAppointment() {
                             const orderResponse =
                               await createRazorpayOrder(doctorId);
 
-                            // if (!orderResponse.success) {
-                            //   Alert.alert(
-                            //     "Payment Error",
-                            //     orderResponse.message || "Unable to create payment order"
-                            //   );
-                            //   return;
-                            // }
+                           
                             console.log("ORDER RESPONSE:", orderResponse);
 
                             const options = {
@@ -230,8 +173,7 @@ export default function BookAppointment() {
                               },
                             };
 
-                            console.log("KEY ID:", orderResponse.keyId);
-                            console.log("ORDER ID:", orderResponse.order?.id);
+                           
                             const paymentResult =
                               await RazorpayCheckout.open(options);
 
@@ -269,8 +211,8 @@ export default function BookAppointment() {
                   ) : (
                     <View className="w-full">
                       <Text className="text-gray-600 mb-4 text-center text-sm">
-                        Payment process exited. Click 'Confirm & Continue' if
-                        payment was successful, or 'Try Again' to retry.
+                        Payment process exited. Click `Confirm & Continue`` if
+                        payment was successful, or `Try Again` to retry.
                       </Text>
                       <View className="flex-row gap-3">
                         <TouchableOpacity
@@ -289,26 +231,6 @@ export default function BookAppointment() {
                               )}&pn=${encodeURIComponent(payeeName)}&am=${encodeURIComponent(
                                 amount,
                               )}&cu=INR&tn=${tn}`;
-
-                              const can = await Linking.canOpenURL(upiUrl);
-                              if (!can) {
-                                Alert.alert(
-                                  "No UPI app",
-                                  "No UPI app found to handle payment. Install Google Pay, PhonePe, Paytm, or Amazon Pay.",
-                                );
-                                setPaying(false);
-                                return;
-                              }
-
-                              await Linking.openURL(upiUrl);
-
-                              // Update payment meta
-                              setPaymentInfo({
-                                method: "UPI",
-                                amount,
-                                txnRef,
-                                upiId,
-                              });
 
                               // Auto-proceed after user returns from UPI app
                               setTimeout(() => {

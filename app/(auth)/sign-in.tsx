@@ -23,6 +23,8 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const handleLogin = async () => {
     const emailCheck = validateEmail(email);
     const passwordCheck = validatePassword(password);
@@ -35,10 +37,15 @@ export default function SignIn() {
       return Alert.alert(passwordCheck.message);
     }
 
-    const { ok, message } = await login(email, password);
-    if (!ok) return Alert.alert(message || "Login failed");
-    Alert.alert("Success", "Login successful");
-    router.replace("/home");
+    setLoading(true);
+    try {
+      const { ok, message } = await login(email, password);
+      if (!ok) return Alert.alert(message || "Login failed");
+      Alert.alert("Success", "Login successful");
+      router.replace("/home");
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <SafeAreaView className="flex-1">
@@ -111,11 +118,12 @@ export default function SignIn() {
               </View>
               <TouchableOpacity
                 onPress={handleLogin}
-                className="border rounded-lg bg-blue-600 flex flex-row items-center  justify-between p-2 my-4 "
+                disabled={loading}
+                className={`border rounded-lg bg-blue-600 flex flex-row items-center justify-between p-2 my-4 ${loading ? "opacity-50" : ""}`}
               >
                 <Ionicons name="person" size={24} color={"#fff"}></Ionicons>
                 <Text className="text-white text-lg font-semibold text-center">
-                  Sign In
+                  {loading ? "Signing In..." : "Sign In"}
                 </Text>
                 <Ionicons
                   name="chevron-forward"

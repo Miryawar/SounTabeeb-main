@@ -33,6 +33,7 @@ export default function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSignUp = async () => {
     const nameCheck = validateName(name);
@@ -49,21 +50,25 @@ export default function SignUp() {
       return alert("Passwords do not match");
     }
 
-    // call register from context
-    const result = await register(name, email, password, { phone });
-    if (!result.ok) return Alert.alert(result.message || "Signup failed");
-    if (result.pendingId) {
-      Alert.alert(
-        "Verify your account",
-        "A verification code was sent. Please confirm your email or phone to finish registration.",
-      );
-      router.replace(
-        `/verify?pendingId=${result.pendingId}&email=${encodeURIComponent(email)}`,
-      );
-      return;
+    setLoading(true);
+    try {
+      const result = await register(name, email, password, { phone });
+      if (!result.ok) return Alert.alert(result.message || "Signup failed");
+      if (result.pendingId) {
+        Alert.alert(
+          "Verify your account",
+          "A verification code was sent. Please confirm your email or phone to finish registration.",
+        );
+        router.replace(
+          `/verify?pendingId=${result.pendingId}&email=${encodeURIComponent(email)}`,
+        );
+        return;
+      }
+      Alert.alert("Account created", "successfully");
+      router.replace("/sign-in");
+    } finally {
+      setLoading(false);
     }
-    Alert.alert("Account created", "successfully");
-    router.replace("/sign-in");
   };
 
   return (
@@ -185,7 +190,8 @@ export default function SignUp() {
 
               <TouchableOpacity
                 onPress={handleSignUp}
-                className="border rounded-lg bg-blue-600 flex flex-row items-center  justify-between p-2 my-4 "
+                disabled={loading}
+                className={`border rounded-lg bg-blue-600 flex flex-row items-center justify-between p-2 my-4 ${loading ? "opacity-50" : ""}`}
               >
                 <Ionicons
                   className="person"
@@ -193,7 +199,7 @@ export default function SignUp() {
                   color={"#fff"}
                 ></Ionicons>
                 <Text className="text-white text-lg font-semibold text-center">
-                  Sign Up
+                  {loading ? "Signing Up..." : "Sign Up"}
                 </Text>
                 <Ionicons
                   name="chevron-forward"

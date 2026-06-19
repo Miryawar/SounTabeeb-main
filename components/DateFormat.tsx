@@ -19,6 +19,7 @@ type Leave = {
 
 type Doctor = {
   _id: string;
+  name?: string;
   workingHours?: WorkingHour[];
   leaves?: Leave[];
 };
@@ -79,7 +80,6 @@ export default function DateFormat({
     ? params.doctorId[0]
     : params.doctorId;
   const finalDoctorId = doctor?._id || routeDoctorId || "";
-  const date = new Date();
 
   // dates for next 6 months (approx 180 days)
   const dates: Date[] = [];

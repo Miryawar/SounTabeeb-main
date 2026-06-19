@@ -22,18 +22,24 @@ export default function DoctorLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
       return Alert.alert("Please enter login id and password.");
     }
 
-    const result = await login(email, password);
-    if (!result.ok) {
-      return Alert.alert(result.message || "Doctor login failed.");
-    }
+    setLoading(true);
+    try {
+      const result = await login(email, password);
+      if (!result.ok) {
+        return Alert.alert(result.message || "Doctor login failed.");
+      }
 
-    router.replace("/doctor/dashboard");
+      router.replace("/doctor/dashboard");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -98,11 +104,12 @@ export default function DoctorLogin() {
 
               <TouchableOpacity
                 onPress={handleLogin}
-                className="flex-row items-center justify-center rounded-2xl bg-blue-600 py-4 px-6"
+                disabled={loading}
+                className={`flex-row items-center justify-center rounded-2xl bg-blue-600 py-4 px-6 ${loading ? "opacity-50" : ""}`}
               >
                 <Ionicons name="log-in" size={22} color="#fff" />
                 <Text className="ml-3 text-white text-lg font-semibold">
-                  Sign In
+                  {loading ? "Signing In..." : "Sign In"}
                 </Text>
               </TouchableOpacity>
 

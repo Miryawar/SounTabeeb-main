@@ -38,6 +38,7 @@ export default function DoctorSignUp() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -72,63 +73,46 @@ export default function DoctorSignUp() {
       return Alert.alert("Error", "Passwords do not match");
     }
 
-  //   const { ok, message } = await register(
-  //     formData.name,
-  //     formData.email,
-  //     formData.password,
-  //     {
-  //       phone: formData.phone,
-  //       speciality: formData.speciality,
-  //       qualification: formData.qualification,
-  //       experience: formData.experience,
-  //       licenseNumber: formData.licenseNumber,
-  //     },
-  //   );
+    setLoading(true);
+    try {
+      const result = await register(
+        formData.name,
+        formData.email,
+        formData.password,
+        {
+          phone: formData.phone,
+          speciality: formData.speciality,
+          qualification: formData.qualification,
+          experience: formData.experience,
+          licenseNumber: formData.licenseNumber,
+        },
+      );
 
-  //   if (!ok)
-  //     return Alert.alert(
-  //       "Signup Failed",
-  //       message || "Could not create account",
-  //     );
-  //   Alert.alert("Success", "Doctor account created successfully");
-  //   router.replace("/doctor/login");
-  // };
-  const result = await register(
-    formData.name,
-    formData.email,
-    formData.password,
-    {
-      phone: formData.phone,
-      speciality: formData.speciality,
-      qualification: formData.qualification,
-      experience: formData.experience,
-      licenseNumber: formData.licenseNumber,
-    },
-  );
-  
-  if (!result.ok) {
-    return Alert.alert(
-      "Signup Failed",
-      result.message || "Could not create account"
-    );
-  }
-  
-  console.log("REGISTER RESULT:", result);
-  
-  if (result.pendingId) {
-    router.push({
-      pathname: "/verify",
-      params: {
-        pendingId: result.pendingId,
-        email: formData.email,
-        role: "doctor",
-      },
-    });
-  
-    return;
-  }
- 
-}
+      if (!result.ok) {
+        return Alert.alert(
+          "Signup Failed",
+          result.message || "Could not create account",
+        );
+      }
+
+      if (result.pendingId) {
+        router.push({
+          pathname: "/verify",
+          params: {
+            pendingId: result.pendingId,
+            email: formData.email,
+            role: "doctor",
+          },
+        });
+        return;
+      }
+
+      Alert.alert("Success", "Doctor account created successfully");
+      router.replace("/doctor/login");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -306,11 +290,12 @@ export default function DoctorSignUp() {
 
               <TouchableOpacity
                 onPress={handleSignUp}
-                className="flex-row items-center justify-center rounded-2xl bg-blue-600 py-4 px-6 mt-6"
+                disabled={loading}
+                className={`flex-row items-center justify-center rounded-2xl bg-blue-600 py-4 px-6 mt-6 ${loading ? "opacity-50" : ""}`}
               >
                 <Ionicons name="person-add" size={22} color="#fff" />
                 <Text className="ml-3 text-white text-lg font-semibold">
-                  Create Account
+                  {loading ? "Creating Account..." : "Create Account"}
                 </Text>
               </TouchableOpacity>
 
