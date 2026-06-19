@@ -1,7 +1,7 @@
-import { apiPost } from "@/utils/api";
+import { apiGet, apiPost } from "@/utils/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useGlobalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 type WorkingHour = {
@@ -102,6 +102,47 @@ export default function DateFormat({
   });
 
   const [selectedTime, setSelectedTime] = useState("");
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+
+  const selectedDate = new Date(dates[isSelectedIndex]);
+  const selectedDateStr = selectedDate.toISOString().split("T")[0];
+
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      if (!finalDoctorId || !selectedDateStr) {
+        setBookedSlots([]);
+        return;
+      }
+
+      try {
+        const res = await apiGet(
+          `/api/doctors/${finalDoctorId}/availability?date=${encodeURIComponent(
+            selectedDateStr,
+          )}`,
+        );
+        if (!res.ok) {
+          const error = await res.json();
+          console.warn("Doctor availability fetch failed:", error?.message);
+          setBookedSlots([]);
+          return;
+        }
+
+        const data = await res.json();
+        setBookedSlots(Array.isArray(data.bookedSlots) ? data.bookedSlots : []);
+      } catch (err) {
+        console.warn("Doctor availability fetch error:", err);
+        setBookedSlots([]);
+      }
+    };
+
+    fetchAvailability();
+  }, [finalDoctorId, selectedDateStr]);
+
+  useEffect(() => {
+    if (selectedTime && bookedSlots.includes(selectedTime)) {
+      setSelectedTime("");
+    }
+  }, [bookedSlots, selectedTime]);
 
   const router = useRouter();
 
@@ -126,7 +167,7 @@ export default function DateFormat({
     selectedDate,
     doctor?.workingHours,
     currentTimes,
-  );
+  ).filter((time) => !bookedSlots.includes(time));
 
   return (
     <ScrollView
@@ -186,15 +227,21 @@ export default function DateFormat({
             No available time slots for this date. Please select another date.
           </Text>
         ) : (
-          times.map((time, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => setSelectedTime(time)}
-              className={`px-2 py-4 mb-2 ml-2 rounded-lg border ${selectedTime === time ? "bg-blue-600 border-gray-600" : "bg-white border-gray-200"}`}
-            >
-              <Text>{time}</Text>
-            </TouchableOpacity>
-          ))
+          times.map((time, index) => {
+            const isSelected = selectedTime === time;
+            return (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setSelectedTime(time)}
+                disabled={isSelected}
+                className={`px-2 py-4 mb-2 ml-2 rounded-lg border ${isSelected ? "bg-blue-600 border-gray-600" : "bg-white border-gray-200"}`}
+              >
+                <Text className={isSelected ? "text-white" : "text-gray-800"}>
+                  {time}
+                </Text>
+              </TouchableOpacity>
+            );
+          })
         )}
       </View>
 

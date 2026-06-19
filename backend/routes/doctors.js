@@ -4,6 +4,7 @@ const auth = require("../middleware/authMiddleware");
 const {
   list,
   get,
+  getAvailability,
   updateMe,
   getMyAppointments,
   getMyPatients,
@@ -12,6 +13,7 @@ const {
 } = require("../controllers/doctorController");
 
 router.get("/", list);
+router.get("/:id/availability", getAvailability);
 router.get("/:id", get);
 router.get("/me/appointments", auth, getMyAppointments);
 router.get("/me/patients", auth, getMyPatients);

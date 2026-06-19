@@ -1,6 +1,7 @@
 const Doctor = require("../models/Doctor");
 const Appointment = require("../models/Appointment");
 const User = require("../models/User");
+const { normalizeDateToDay } = require("../utils/slotHelper");
 const fs = require("fs");
 const path = require("path");
 
@@ -47,6 +48,38 @@ exports.get = async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
+  }
+};
+
+exports.getAvailability = async (req, res) => {
+  try {
+    const doctor = await Doctor.findById(req.params.id);
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    const dateParam = req.query.date
+      ? normalizeDateToDay(req.query.date)
+      : null;
+
+    let bookedSlots = [];
+    if (dateParam) {
+      const appointmentDate = new Date(dateParam);
+      appointmentDate.setHours(0, 0, 0, 0);
+      const appointments = await Appointment.find({
+        doctor: doctor._id,
+        date: appointmentDate,
+        status: { $in: ["pending", "confirmed"] },
+      })
+        .select("slot")
+        .lean();
+      bookedSlots = appointments.map((appt) => appt.slot);
+    }
+
+    res.json({ doctor, bookedSlots, date: dateParam });
+  } catch (err) {
+    console.error("GET DOCTOR AVAILABILITY ERROR:", err.message || err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
