@@ -286,6 +286,7 @@ export default function DateFormat({
             const body: any = {
               doctorId: finalDoctorId,
               date: dayOnly,
+              appointmentDate: dayOnly,
               slot: slotStr,
             };
             if (paymentInfo) {

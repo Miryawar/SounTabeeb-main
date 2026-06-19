@@ -432,28 +432,35 @@ exports.create = async (req, res) => {
     appointmentDate: appointmentDateInput,
     timeSlot,
   } = req.body;
+  const appointmentDateValue = appointmentDateInput || date;
   const slotInput = slot || timeSlot;
 
   try {
-    if (!doctorId || !appointmentDateInput || !slotInput) {
+    if (!doctorId || !appointmentDateValue || !slotInput) {
       return res
         .status(400)
         .json({ message: "Doctor, date and slot are required" });
     }
 
+    const paymentReference =
+      paymentInfo?.txnRef ||
+      paymentInfo?.transactionRef ||
+      paymentInfo?.paymentId ||
+      paymentInfo?.orderId;
+
     if (
       !paymentInfo ||
       !paymentInfo.method ||
-      !paymentInfo.txnRef ||
+      !paymentReference ||
       !paymentInfo.amount
     ) {
       return res.status(400).json({
         message:
-          "Valid payment information is required. Please complete UPI payment before proceeding.",
+          "Valid payment information is required. Please complete payment before proceeding.",
       });
     }
 
-    const appointmentDate = normalizeAppointmentDate(appointmentDateInput);
+    const appointmentDate = normalizeAppointmentDate(appointmentDateValue);
     if (!appointmentDate) {
       return res.status(400).json({ message: "Invalid appointment date" });
     }
