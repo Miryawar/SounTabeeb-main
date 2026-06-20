@@ -1,7 +1,7 @@
 import { apiGet, apiPost } from "@/utils/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useGlobalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 type WorkingHour = {
@@ -61,10 +61,22 @@ const getAvailableTimeSlots = (
 
   const startMinutes = parseTime(schedule.start);
   const endMinutes = parseTime(schedule.end);
+  
+  // Define Lunch Break: 1:00 PM (13:00) to 2:00 PM (14:00)
+  const lunchStartMinutes = parseTime("13:00");
+  const lunchEndMinutes = parseTime("14:00");
+
   return currentTimes.filter((time) => {
-    const [hours, minutes] = time.split(":").map(Number);
-    const slotMinutes = hours * 60 + minutes;
-    return slotMinutes >= startMinutes && slotMinutes < endMinutes;
+    const slotMinutes = parseTime(time);
+    
+    // 1. Check if the slot is within the doctor's general working hours
+    const isWithinWorkingHours = slotMinutes >= startMinutes && slotMinutes < endMinutes;
+    
+    // 2. Check if the slot falls inside the lunch break window
+    const isLunchBreak = slotMinutes >= lunchStartMinutes && slotMinutes < lunchEndMinutes;
+    
+    // 3. Return true ONLY if it's a working hour AND not during lunch
+    return isWithinWorkingHours && !isLunchBreak;
   });
 };
 
@@ -80,37 +92,80 @@ export default function DateFormat({
     ? params.doctorId[0]
     : params.doctorId;
   const finalDoctorId = doctor?._id || routeDoctorId || "";
+  const router = useRouter();
 
-  // dates for next 6 months (approx 180 days)
-  const dates: Date[] = [];
-  for (let i = 0; i < 180; i++) {
-    const nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + i);
-    nextDate.setHours(0, 0, 0, 0);
-    dates.push(nextDate);
-  }
+  const [displayedMonth, setDisplayedMonth] = useState(() => {
+    const today = new Date();
+    today.setDate(1);
+    today.setHours(0, 0, 0, 0);
+    return today;
+  });
+
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState("");
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [hasExistingBooking, setHasExistingBooking] = useState(false);
+  // NEW: Button loading state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // NEW: Calculate exactly 90 days from today
+  const maxAllowedDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 90);
+    d.setHours(23, 59, 59, 999); // End of the 90th day
+    return d;
+  }, []);
+
   const isDateSelectable = (date: Date) => {
     if (!doctor) return false;
+    // NEW: Block selection if the date is beyond 90 days
+    if (date > maxAllowedDate) return false; 
+    
     if (isDateOnLeave(date, doctor.leaves || [])) return false;
     const schedule = getWorkingHoursForDate(date, doctor.workingHours || []);
     return Boolean(schedule && schedule.active);
   };
 
-  const [isSelectedIndex, setIsSelectedIndex] = useState(() => {
-    const firstAvailable = dates.findIndex(isDateSelectable);
-    return firstAvailable >= 0 ? firstAvailable : 0;
-  });
+  const calendarDays = useMemo(() => {
+    const year = displayedMonth.getFullYear();
+    const month = displayedMonth.getMonth();
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const days = [];
+    
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push(null);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(new Date(year, month, i));
+    }
+    return days;
+  }, [displayedMonth]);
 
-  const [selectedTime, setSelectedTime] = useState("");
-  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  useEffect(() => {
+    if (!selectedDate && calendarDays.length > 0) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const firstAvailable = calendarDays.find(
+        (d) => d !== null && d >= today && isDateSelectable(d)
+      );
+      if (firstAvailable) setSelectedDate(firstAvailable);
+    }
+  }, [calendarDays, selectedDate, doctor]);
 
-  const selectedDate = new Date(dates[isSelectedIndex]);
-  const selectedDateStr = selectedDate.toISOString().split("T")[0];
+  const selectedDateStr = useMemo(() => {
+    if (!selectedDate) return null;
+    const year = selectedDate.getFullYear();
+    const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+    const day = String(selectedDate.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }, [selectedDate]);
 
   useEffect(() => {
     const fetchAvailability = async () => {
       if (!finalDoctorId || !selectedDateStr) {
         setBookedSlots([]);
+        setHasExistingBooking(false);
         return;
       }
 
@@ -121,17 +176,17 @@ export default function DateFormat({
           )}`,
         );
         if (!res.ok) {
-          const error = await res.json();
-          console.warn("Doctor availability fetch failed:", error?.message);
           setBookedSlots([]);
+          setHasExistingBooking(false);
           return;
         }
 
         const data = await res.json();
         setBookedSlots(Array.isArray(data.bookedSlots) ? data.bookedSlots : []);
+        setHasExistingBooking(Boolean(data.hasExistingBooking));
       } catch (err) {
-        console.warn("Doctor availability fetch error:", err);
         setBookedSlots([]);
+        setHasExistingBooking(false);
       }
     };
 
@@ -139,34 +194,63 @@ export default function DateFormat({
   }, [finalDoctorId, selectedDateStr]);
 
   useEffect(() => {
-    if (selectedTime && bookedSlots.includes(selectedTime)) {
-      setSelectedTime("");
+    setSelectedTime("");
+  }, [selectedDateStr]);
+
+  const currentTimes: string[] = useMemo(() => {
+    const times = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 10) {
+        times.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+      }
     }
-  }, [bookedSlots, selectedTime]);
+    return times;
+  }, []);
 
-  const router = useRouter();
+  const times = useMemo(() => {
+    if (!selectedDate) return [];
+    
+    const now = new Date();
+    const currentMinutesNow = now.getHours() * 60 + now.getMinutes();
+    const isTodaySelected = selectedDate.toDateString() === now.toDateString();
 
-  const currentTimes: string[] = [];
-  const startTime = new Date();
-  startTime.setHours(0, 0, 0, 0);
+    return getAvailableTimeSlots(
+      selectedDate,
+      doctor?.workingHours,
+      currentTimes,
+    ).filter((time) => {
+      // NEW: We no longer filter out booked slots here so we can render them disabled
+      if (isTodaySelected) {
+        const [sh, sm] = time.split(":").map(Number);
+        return sh * 60 + sm > currentMinutesNow; 
+      }
+      return true;
+    });
+  }, [selectedDate, doctor, currentTimes]);
 
-  for (let i = 0; i < 24 * 6; i += 1) {
-    const time = new Date(startTime);
-    time.setMinutes(i * 10);
-    currentTimes.push(
-      time.toLocaleTimeString("en-IN", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }),
-    );
-  }
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+  
+  const canGoBack = 
+    displayedMonth.getFullYear() > todayDate.getFullYear() || 
+    (displayedMonth.getFullYear() === todayDate.getFullYear() && displayedMonth.getMonth() > todayDate.getMonth());
 
-  const times = getAvailableTimeSlots(
-    selectedDate,
-    doctor?.workingHours,
-    currentTimes,
-  ).filter((time) => !bookedSlots.includes(time));
+  // NEW: Calculate if the displayed month is before the month of the max allowed date
+  const canGoForward = 
+    displayedMonth.getFullYear() < maxAllowedDate.getFullYear() || 
+    (displayedMonth.getFullYear() === maxAllowedDate.getFullYear() && displayedMonth.getMonth() < maxAllowedDate.getMonth());
+
+  const handlePrevMonth = () => {
+    if (!canGoBack) return;
+    setDisplayedMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    if (!canGoForward) return; // NEW: Stop navigation if limit reached
+    setDisplayedMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
+
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
     <ScrollView
@@ -175,67 +259,111 @@ export default function DateFormat({
       showsVerticalScrollIndicator={false}
     >
       <Text className="text-xl font-bold text-gray-800">Choose Date</Text>
-      <View className="flex flex-row items-center justify-between my-4">
-        <Ionicons name="chevron-back" size={24} color={"gray"}></Ionicons>
-        <Text className="text-lg font-bold text-gray-600">
-          {dates[isSelectedIndex].toLocaleDateString("en-US", {
-            day: "numeric",
+      
+      <View className="flex flex-row items-center justify-between my-4 px-2">
+        <TouchableOpacity onPress={handlePrevMonth} disabled={!canGoBack}>
+          <Ionicons name="chevron-back" size={28} color={canGoBack ? "#4B5563" : "#D1D5DB"} />
+        </TouchableOpacity>
+        
+        <Text className="text-lg font-bold text-gray-700">
+          {displayedMonth.toLocaleDateString("en-US", {
             month: "long",
             year: "numeric",
           })}
         </Text>
-        <Ionicons name="chevron-forward" size={24} color={"gray"}></Ionicons>
+        
+        <TouchableOpacity onPress={handleNextMonth} disabled={!canGoForward}>
+          <Ionicons 
+            name="chevron-forward" 
+            size={28} 
+            color={canGoForward ? "#4B5563" : "#D1D5DB"} 
+          />
+        </TouchableOpacity>
       </View>
 
-      <View className="flex-row flex-wrap gap-3">
-        {dates.map((items, index) => (
-          <TouchableOpacity
-            key={index}
-            onPress={() => isDateSelectable(items) && setIsSelectedIndex(index)}
-            disabled={!isDateSelectable(items)}
-            className={`px-3 py-3 rounded-full border ${isSelectedIndex === index ? "bg-blue-600 border-gray-600" : isDateSelectable(items) ? "bg-white border-gray-200" : "bg-gray-100 border-gray-200 opacity-50"}`}
-          >
-            <View>
-              <Text
-                className={`text-sm font-semibold ${isSelectedIndex === index ? "text-white" : "text-gray-500"}`}
-              >
-                {items.toLocaleDateString("en-IN", {
-                  weekday: "short",
-                })}
-              </Text>
-            </View>
-
-            <View>
-              <Text
-                className={`  text-xl font-bold mt-2 ${isSelectedIndex === index ? "text-white" : "text-gray-800"}`}
-              >
-                {items.toLocaleDateString("en-IN", {
-                  day: "numeric",
-                })}
-              </Text>
-            </View>
-          </TouchableOpacity>
+      <View className="flex-row mb-2">
+        {weekDays.map(day => (
+          <Text key={day} className="flex-1 text-center text-xs font-semibold text-gray-500 uppercase">
+            {day}
+          </Text>
         ))}
+      </View>
+
+      <View className="flex-row flex-wrap mb-6">
+        {calendarDays.map((dateObj, index) => {
+          if (!dateObj) return <View key={`empty-${index}`} style={{ width: '14.28%' }} />;
+
+          const isPast = dateObj < todayDate;
+          const isSelectable = !isPast && isDateSelectable(dateObj);
+          const isSelected = selectedDate?.toDateString() === dateObj.toDateString();
+
+          return (
+            <TouchableOpacity
+              key={index}
+              onPress={() => isSelectable && setSelectedDate(dateObj)}
+              disabled={!isSelectable}
+              style={{ width: '14.28%', padding: 4 }}
+            >
+              <View 
+                className={`items-center justify-center py-2 rounded-xl border-2 ${
+                  isSelected 
+                    ? "bg-blue-600 border-blue-600" 
+                    : isSelectable 
+                      ? "bg-white border-transparent" 
+                      : "opacity-30 border-transparent"
+                }`}
+              >
+                <Text 
+                  className={`text-lg font-bold ${
+                    isSelected ? "text-white" : "text-gray-800"
+                  }`}
+                >
+                  {dateObj.getDate()}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       <Text className="text-gray-800 font-bold text-xl my-4">Choose Time</Text>
 
-      <View className="flex flex-row  flex-wrap">
-        {times.length === 0 ? (
-          <Text className="text-gray-500 px-4 py-3">
-            No available time slots for this date. Please select another date.
+      <View className="flex flex-row flex-wrap gap-2">
+        {hasExistingBooking ? (
+          <Text className="text-red-500 font-semibold bg-red-50 p-4 rounded-xl w-full">
+            ⚠️ You already have an appointment booked with this doctor on this day. 
+            Please choose a different date.
+          </Text>
+        ) : times.length === 0 ? (
+          <Text className="text-gray-500 py-3">
+            No available time slots for this date.
           </Text>
         ) : (
           times.map((time, index) => {
+            // NEW: Check if this specific slot is booked
+            const isBooked = bookedSlots.includes(time);
             const isSelected = selectedTime === time;
+
             return (
               <TouchableOpacity
                 key={index}
                 onPress={() => setSelectedTime(time)}
-                disabled={isSelected}
-                className={`px-2 py-4 mb-2 ml-2 rounded-lg border ${isSelected ? "bg-blue-600 border-gray-600" : "bg-white border-gray-200"}`}
+                disabled={isBooked || isSubmitting}
+                className={`px-4 py-3 rounded-xl border ${
+                  isBooked 
+                    ? "bg-gray-100 border-gray-200 opacity-50" 
+                    : isSelected 
+                      ? "bg-blue-600 border-blue-600" 
+                      : "bg-white border-gray-200"
+                }`}
               >
-                <Text className={isSelected ? "text-white" : "text-gray-800"}>
+                <Text className={`font-medium ${
+                  isBooked 
+                    ? "text-gray-400 line-through" 
+                    : isSelected 
+                      ? "text-white" 
+                      : "text-gray-800"
+                }`}>
                   {time}
                 </Text>
               </TouchableOpacity>
@@ -244,65 +372,56 @@ export default function DateFormat({
         )}
       </View>
 
-      <View className="flex flex-row items-center gap-6 bg-green-50 px-4 py-3 rounded-xl">
-        <Ionicons name="calendar-outline" size={28} color={"green"}></Ionicons>
+      <View className="flex flex-row items-center gap-6 bg-green-50 px-4 py-3 rounded-xl mt-6">
+        <Ionicons name="calendar-outline" size={28} color={"green"} />
         <View>
-          <Text className="text-lg font-semibold text-gray-600">
-            You Selected
-          </Text>
-          <View className="flex flex-row items-center gap-4">
-            <Text className="text-lg font-bold text-green-600 mt-1">
-              {dates[isSelectedIndex].toLocaleDateString("en-IN", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
+          <Text className="text-sm font-semibold text-gray-500">You Selected</Text>
+          <View className="flex flex-row items-center gap-2">
+            <Text className="text-base font-bold text-green-700">
+              {selectedDate ? selectedDate.toLocaleDateString("en-IN", { day: "numeric", month: "long" }) : "Select Date"}
             </Text>
-            <Text className="text-lg text-green-600 font-bold mt-1">
-              {selectedTime || "Select Time"}
-            </Text>
+            {selectedTime ? (
+              <Text className="text-base text-green-700 font-bold">• {selectedTime}</Text>
+            ) : null}
           </View>
         </View>
       </View>
+
+      {/* NEW: Button disabled state, dynamic text, and loading protection */}
       <TouchableOpacity
+        disabled={isSubmitting || hasExistingBooking || !selectedTime}
         onPress={async () => {
           if (!finalDoctorId) return Alert.alert("Missing doctor id");
-          if (!selectedTime) return Alert.alert("Please select a time");
-          const dateObj = new Date(dates[isSelectedIndex]);
-          const [hourStr, minuteStr] = selectedTime.split(":");
-          dateObj.setHours(Number(hourStr), Number(minuteStr), 0, 0);
+          if (!selectedTime || !selectedDateStr) return Alert.alert("Please select a date and time");
+          
+          setIsSubmitting(true);
+          
           try {
             if (!paymentInfo) {
+              setIsSubmitting(false);
               return Alert.alert(
                 "Payment Required",
                 "Payment information is missing. Please complete the payment first.",
               );
             }
-            // send date as YYYY-MM-DD (day only) and a discrete `slot` identifier
-            const dayOnly = dates[isSelectedIndex].toISOString().split("T")[0];
-            const slotHour = dateObj.getHours();
-            const slotMinute = dateObj.getMinutes();
-            const slotStr = `${String(slotHour).padStart(2, "0")}:${String(slotMinute).padStart(2, "0")}`;
+
             const body: any = {
               doctorId: finalDoctorId,
-              date: dayOnly,
-              appointmentDate: dayOnly,
-              slot: slotStr,
+              date: selectedDateStr,
+              appointmentDate: selectedDateStr,
+              slot: selectedTime,
+              paymentInfo,
             };
-            if (paymentInfo) {
-              body.paymentInfo = paymentInfo;
-            }
+
             const res = await apiPost("/api/appointments", body);
             const data = await res.json();
+            
             if (!res.ok) {
               const reason = data?.message || "Booking failed";
-              router.replace(
-                `/payment-status?status=failed&failureReason=${encodeURIComponent(
-                  reason,
-                )}`,
-              );
+              router.replace(`/payment-status?status=failed&failureReason=${encodeURIComponent(reason)}`);
               return;
             }
+            
             router.replace(
               `/payment-status?status=success&amount=${encodeURIComponent(
                 paymentInfo?.amount || "0",
@@ -313,18 +432,17 @@ export default function DateFormat({
               )}`,
             );
           } catch (err: any) {
-            console.warn(err);
-            router.replace(
-              `/payment-status?status=failed&failureReason=${encodeURIComponent(
-                err?.message || "Server error",
-              )}`,
-            );
+            router.replace(`/payment-status?status=failed&failureReason=${encodeURIComponent(err?.message || "Server error")}`);
+          } finally {
+            setIsSubmitting(false);
           }
         }}
-        className=" bg-blue-600 p-4  rounded-full items-center mt-4"
+        className={`p-4 rounded-full items-center mt-6 ${
+          isSubmitting || hasExistingBooking || !selectedTime ? "bg-blue-400" : "bg-blue-600"
+        }`}
       >
-        <Text className="text-[#fff] font-bold text-lg">
-          Continue To Confirm
+        <Text className="text-white font-bold text-lg">
+          {isSubmitting ? "Processing..." : "Continue To Confirm"}
         </Text>
       </TouchableOpacity>
     </ScrollView>

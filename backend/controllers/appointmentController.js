@@ -48,6 +48,12 @@ const normalizeAppointmentDate = (dateString) => {
   return appointmentDate;
 };
 
+const isDateWithinAllowedRange = (date) => {
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + 90);
+  maxDate.setHours(23, 59, 59, 999);
+  return date <= maxDate;
+};
 const findDoctor = async (doctorId) => {
   let doctor = await Doctor.findById(doctorId);
   if (!doctor) {
@@ -342,6 +348,12 @@ exports.verifyRazorpayPayment = async (req, res) => {
       return res.status(400).json({ message: "Invalid appointment date" });
     }
 
+    if (!isDateWithinAllowedRange(appointmentDate)) {
+      return res.status(400).json({
+        message: "Appointments can only be booked up to 90 days in advance.",
+      });
+    }
+
     const doctor = await findDoctor(doctorId);
     if (!doctor) {
       return res.status(404).json({ message: "Doctor not found" });
@@ -361,12 +373,29 @@ exports.verifyRazorpayPayment = async (req, res) => {
       });
     }
 
+    // Prevent same user from booking the same doctor twice on the same day
+    const userExistingDayBooking = await Appointment.findOne({
+      user: req.user._id,
+      doctor: doctor._id,
+      date: appointmentDate,
+      status: { $in: ["pending", "confirmed"] },
+    });
+
+    if (userExistingDayBooking) {
+      return res.status(400).json({
+        message: "You already have an appointment booked with this doctor on this date.",
+      });
+    }
+    // --- END NEW BLOCK ---
+
+    // This is your existing code that checks if the slot itself is taken
     const existing = await Appointment.findOne({
       doctor: doctor._id,
       date: appointmentDate,
       slot: slotInput,
       status: { $in: ["pending", "confirmed"] },
     });
+
     if (existing) {
       return res
         .status(400)
@@ -497,12 +526,29 @@ exports.create = async (req, res) => {
       });
     }
 
+    // --- INSERT THIS NEW BLOCK ---
+    // Prevent same user from booking the same doctor twice on the same day
+    const userExistingDayBooking = await Appointment.findOne({
+      user: req.user._id,
+      doctor: doctor._id,
+      date: appointmentDate,
+      status: { $in: ["pending", "confirmed"] },
+    });
+
+    if (userExistingDayBooking) {
+      return res.status(400).json({
+        message: "You already have an appointment booked with this doctor on this date.",
+      });
+    }
+
+    // This is your existing code that checks if the slot itself is taken
     const existing = await Appointment.findOne({
       doctor: doctor._id,
       date: appointmentDate,
       slot: slotInput,
       status: { $in: ["pending", "confirmed"] },
     });
+
     if (existing) {
       return res
         .status(400)
