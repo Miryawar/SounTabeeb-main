@@ -95,23 +95,16 @@ export default function DateFormat({
     const schedule = getWorkingHoursForDate(date, doctor.workingHours || []);
     return Boolean(schedule && schedule.active);
   };
-  const availableDates = dates.filter(isDateSelectable);
-  const monthDates = (availableDates || []).filter(
-    (date) =>
-      date &&
-      date.getMonth() === currentMonth.getMonth() &&
-      date.getFullYear() === currentMonth.getFullYear()
-  );
-
-  const [isSelectedIndex, setIsSelectedIndex] = useState(0);
+  const [isSelectedIndex, setIsSelectedIndex] = useState(() => {
+    const firstAvailable = dates.findIndex(isDateSelectable);
+    return firstAvailable >= 0 ? firstAvailable : 0;
+  });
 
   const [selectedTime, setSelectedTime] = useState("");
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
 
-  const selectedDate =
-  availableDates.length > 0
-    ? new Date(availableDates[Math.min(isSelectedIndex, availableDates.length - 1)])
-    : new Date();
+  const selectedDate = new Date(dates[isSelectedIndex]);
+  
   const selectedDateStr = selectedDate.toISOString().split("T")[0];
 
   useEffect(() => {
@@ -152,7 +145,6 @@ export default function DateFormat({
   }, [bookedSlots, selectedTime]);
 
   const router = useRouter();
-  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const currentTimes: string[] = [];
   const startTime = new Date();
@@ -170,39 +162,11 @@ export default function DateFormat({
     );
   }
 
-  const now = new Date();
-
-  const times = getAvailableTimeSlots(
+ const times = getAvailableTimeSlots(
     selectedDate,
     doctor?.workingHours,
     currentTimes,
-  )
-  .filter((time) => !bookedSlots.includes(time))
-  
-  // Remove lunch break
-  .filter((time) => {
-    const [hour] = time.split(":").map(Number);
-    return !(hour >= 13 && hour < 14);
-  })
-  
-  // Remove past times for today
-  .filter((time) => {
-    const today = new Date();
-  
-    if (
-      selectedDate.toDateString() !== today.toDateString()
-    ) {
-      return true;
-    }
-  
-    const [hour, minute] = time.split(":").map(Number);
-  
-    const slotTime = new Date();
-    slotTime.setHours(hour, minute, 0, 0);
-  
-    return slotTime > now;
-  });
-
+  ).filter((time) => !bookedSlots.includes(time));
   return (
     <ScrollView
       className="flex-1"
@@ -211,36 +175,21 @@ export default function DateFormat({
     >
       <Text className="text-xl font-bold text-gray-800">Choose Date</Text>
       <View className="flex flex-row items-center justify-between my-4">
-      <TouchableOpacity
-  onPress={() => {
-    const prev = new Date(currentMonth);
-    prev.setMonth(prev.getMonth() - 1);
-    setCurrentMonth(prev);
-    setIsSelectedIndex(0);
-  }}
->
-  <Ionicons name="chevron-back" size={24} color="gray" />
-</TouchableOpacity>
+
+          <Ionicons name="chevron-back" size={24} color={"gray"}></Ionicons>
+        
         <Text className="text-lg font-bold text-gray-600">
-            {currentMonth.toLocaleDateString("en-US", {
+        {dates[isSelectedIndex].toLocaleDateString("en-US", {
+            day: "numeric",
             month: "long",
             year: "numeric",
           })}
         </Text>
-        <TouchableOpacity
-  onPress={() => {
-    const prev = new Date(currentMonth);
-    prev.setMonth(prev.getMonth() - 1);
-    setCurrentMonth(prev);
-    setIsSelectedIndex(0);
-  }}
->
-  <Ionicons name="chevron-back" size={24} color="gray" />
-</TouchableOpacity>
+      <Ionicons name="chevron-forward" size={24} color={"gray"}></Ionicons>
       </View>
 
       <View className="flex-row flex-wrap gap-3">
-      {monthDates.map((items, index) => (
+      {dates.map((items, index) => (
           <TouchableOpacity
             key={index}
             onPress={() => isDateSelectable(items) && setIsSelectedIndex(index)}
@@ -304,7 +253,7 @@ export default function DateFormat({
           </Text>
           <View className="flex flex-row items-center gap-4">
             <Text className="text-lg font-bold text-green-600 mt-1">
-            {availableDates[isSelectedIndex].toLocaleDateString("en-IN", {
+           {dates[isSelectedIndex].toLocaleDateString("en-IN", {
                 day: "numeric",
                 month: "long",
                 year: "numeric",
@@ -320,7 +269,7 @@ export default function DateFormat({
         onPress={async () => {
           if (!finalDoctorId) return Alert.alert("Missing doctor id");
           if (!selectedTime) return Alert.alert("Please select a time");
-          const dateObj = new Date(availableDates[isSelectedIndex]);
+            const dateObj = new Date(dates[isSelectedIndex]);
           const [hourStr, minuteStr] = selectedTime.split(":");
           dateObj.setHours(Number(hourStr), Number(minuteStr), 0, 0);
           try {
@@ -331,7 +280,7 @@ export default function DateFormat({
               );
             }
             // send date as YYYY-MM-DD (day only) and a discrete `slot` identifier
-            const dayOnly = availableDates[isSelectedIndex].toISOString().split("T")[0];
+            const dayOnly = dates[isSelectedIndex].toISOString().split("T")[0];
             const slotHour = dateObj.getHours();
             const slotMinute = dateObj.getMinutes();
             const slotStr = `${String(slotHour).padStart(2, "0")}:${String(slotMinute).padStart(2, "0")}`;
