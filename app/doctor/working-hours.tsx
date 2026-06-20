@@ -21,7 +21,7 @@ const defaultWorkingHours = [
   { day: "Wednesday", start: "09:00", end: "17:00", active: true },
   { day: "Thursday", start: "09:00", end: "17:00", active: true },
   { day: "Friday", start: "09:00", end: "17:00", active: true },
-  { day: "Saturday", start: "09:00", end: "13:00", active: false },
+  { day: "Saturday", start: "09:00", end: "17:00", active: false },
 ];
 
 export default function DoctorWorkingHours() {
@@ -93,14 +93,14 @@ export default function DoctorWorkingHours() {
 
   if (loading || !doctor || loadingHours) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-white">
-        <ActivityIndicator size="large" color="#2563EB" />
+      <SafeAreaView className="flex-1 justify-center items-center bg-blue-50">
+        <ActivityIndicator size="large" color="#1c54cb" />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView className="flex-1 bg-blue-50">
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView contentContainerStyle={{ padding: 16 }}>
           <Text className="text-3xl font-bold text-gray-900 mb-3">

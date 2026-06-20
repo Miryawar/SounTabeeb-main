@@ -96,7 +96,7 @@ export default function DoctorDashboard() {
 
   if (loading || !doctor) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-slate-950">
+      <SafeAreaView className="flex-1">
         <Text className="text-slate-100">Loading doctor dashboard...</Text>
       </SafeAreaView>
     );
@@ -187,7 +187,7 @@ export default function DoctorDashboard() {
 
         <View className="mb-6 space-y-4">
           <LinearGradient
-            colors={["#84873e", "#735eb2"]}
+            colors={["#7e7e66", "#735eb2"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             className="flex-row items-center justify-between rounded-3xl p-3 shadow-md"
@@ -306,7 +306,7 @@ export default function DoctorDashboard() {
             className="rounded-3xl overflow-hidden shadow-md"
           >
             <LinearGradient
-              colors={["#f59e0b", "#ef4444"]}
+              colors={["#20367e", "#7b878f"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               className="p-4"

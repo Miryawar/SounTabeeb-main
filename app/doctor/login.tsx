@@ -43,7 +43,7 @@ export default function DoctorLogin() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1"> 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
         <ScrollView contentContainerStyle={{ padding: 16 }}>
           <View className="items-center">

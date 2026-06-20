@@ -41,12 +41,63 @@ exports.getProfile = async (req, res) => {
   }
 };
 
+// exports.updateProfile = async (req, res) => {
+//   try {
+//     console.log("UPDATE PROFILE - User ID:", req.user._id);
+//     console.log("UPDATE PROFILE - Request Body:", req.body);
+
+//     const updates = {
+//       dob: req.body.dob,
+//       address: req.body.address,
+//       city: req.body.city,
+//       state: req.body.state,
+//       district: req.body.district,
+//       pincode: req.body.pincode,
+//       gender: req.body.gender,
+//       medicalRecords: Array.isArray(req.body.medicalRecords)
+//         ? req.body.medicalRecords
+//         : undefined,
+//     };
+
+//     if (req.body.phone) {
+//       updates.phone = Number(req.body.phone);
+//     }
+
+//     console.log("UPDATE PROFILE - Updates object:", updates);
+
+//     const user = await req.user.constructor
+//       .findByIdAndUpdate(req.user._id, updates, {
+//         new: true,
+//         runValidators: true,
+//       })
+//       .select("-password");
+
+//     if (!user) return res.status(404).json({ message: "User not found" });
+
+//     console.log("UPDATE PROFILE - Updated user:", user.toObject());
+
+//     res.json({
+//       ...user.toObject(),
+//       phone: user.phone || "",
+//       dob: user.dob || "",
+//       address: user.address || "",
+//       city: user.city || "",
+//       state: user.state || "",
+//       district: user.district || "",
+//       pincode: user.pincode || "",
+//       gender: user.gender || "",
+//     });
+//   } catch (err) {
+//     console.error("UPDATE PROFILE ERROR:", err.message);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
 exports.updateProfile = async (req, res) => {
   try {
     console.log("UPDATE PROFILE - User ID:", req.user._id);
-    console.log("UPDATE PROFILE - Request Body:", req.body);
 
-    const updates = {
+    // 1. Prepare updates for the USER collection
+    const userUpdates = {
       dob: req.body.dob,
       address: req.body.address,
       city: req.body.city,
@@ -60,24 +111,46 @@ exports.updateProfile = async (req, res) => {
     };
 
     if (req.body.phone) {
-      updates.phone = Number(req.body.phone);
+      userUpdates.phone = Number(req.body.phone);
     }
 
-    console.log("UPDATE PROFILE - Updates object:", updates);
-
+    // Update the User document
     const user = await req.user.constructor
-      .findByIdAndUpdate(req.user._id, updates, {
+      .findByIdAndUpdate(req.user._id, userUpdates, {
         new: true,
         runValidators: true,
       })
-      .select("-password");
+      .select("-password")
+      .lean(); // .lean() makes it a plain JavaScript object so we can easily merge it
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    console.log("UPDATE PROFILE - Updated user:", user.toObject());
+    // 2. Prepare updates for the DOCTOR collection (if applicable)
+    let doctorProfile = null;
+    if (user.role === "doctor") {
+      const doctorUpdates = {};
+      
+      // Grab any doctor-specific fields sent from the frontend
+      if (req.body.speciality !== undefined) doctorUpdates.speciality = req.body.speciality;
+      if (req.body.qualification !== undefined) doctorUpdates.qualification = req.body.qualification;
+      if (req.body.experience !== undefined) doctorUpdates.experience = req.body.experience;
+      if (req.body.licenseNumber !== undefined) doctorUpdates.licenseNumber = req.body.licenseNumber;
+      if (req.body.bio !== undefined) doctorUpdates.bio = req.body.bio;
+      if (req.body.fees !== undefined) doctorUpdates.fees = req.body.fees;
+      if (req.body.workingHours !== undefined) doctorUpdates.workingHours = req.body.workingHours;
+      if (req.body.leaves !== undefined) doctorUpdates.leaves = req.body.leaves;
 
+      // Update the Doctor document
+      doctorProfile = await Doctor.findOneAndUpdate(
+        { user: user._id },
+        { $set: doctorUpdates },
+        { new: true }
+      ).lean();
+    }
+
+    // 3. Send back the combined profile exactly like `getProfile` does
     res.json({
-      ...user.toObject(),
+      ...user,
       phone: user.phone || "",
       dob: user.dob || "",
       address: user.address || "",
@@ -86,7 +159,19 @@ exports.updateProfile = async (req, res) => {
       district: user.district || "",
       pincode: user.pincode || "",
       gender: user.gender || "",
+      medicalRecords: user.medicalRecords || [],
+      notifications: user.notifications || [],
+      profilePicture: doctorProfile?.profilePicture || user.profilePicture || null,
+      speciality: doctorProfile?.speciality || "",
+      qualification: doctorProfile?.qualification || "",
+      experience: doctorProfile?.experience || "",
+      licenseNumber: doctorProfile?.licenseNumber || "",
+      bio: doctorProfile?.bio || "",
+      fees: doctorProfile?.fees || 0,
+      workingHours: doctorProfile?.workingHours || [],
+      leaves: doctorProfile?.leaves || [],
     });
+
   } catch (err) {
     console.error("UPDATE PROFILE ERROR:", err.message);
     res.status(500).json({ message: "Server error" });
