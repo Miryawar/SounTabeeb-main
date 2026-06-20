@@ -1,16 +1,31 @@
 import { useUser } from "@/context/UserContext";
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "expo-router";
+import { useEffect, useMemo, useState, useCallback } from "react"; // Add useCallback
+import { useRouter, useFocusEffect } from "expo-router"; // Add useFocusEffect
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function NotificationCenter() {
   const router = useRouter();
-  const { user, markNotificationRead } = useUser();
+
+  const { user, markNotificationRead, refreshUserProfile } = useUser();
   const [loadingIds, setLoadingIds] = useState<string[]>([]);
 
-  const notifications = useMemo(() => user?.notifications || [], [user]);
+  useFocusEffect(
+    useCallback(() => {
+      refreshUserProfile();
+    }, [refreshUserProfile])
+  );
+  
+  const notifications = useMemo(() => {
+    const rawNotifications = user?.notifications || [];
+    // Sort so the newest notifications (most recent createdAt) appear at the top
+    return [...rawNotifications].sort((a: any, b: any) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return dateB - dateA; 
+    });
+  }, [user]);
 
   const handleMarkRead = async (id: string) => {
     setLoadingIds((prev) => [...prev, id]);

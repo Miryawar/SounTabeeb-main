@@ -115,7 +115,7 @@ export default function DropdownMenu() {
           <View className="border-b border-gray-100 my-1"></View>
 
           <TouchableOpacity
-            onPress={() => router.push("/(auth)/sign-in")}
+            onPress={() => router.replace("/(auth)/sign-in")}
             className="flex flex-row items-center justify-between py-1"
           >
             <View className="flex flex-row items-center gap-3 ">

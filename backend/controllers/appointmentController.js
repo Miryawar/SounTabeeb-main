@@ -160,6 +160,16 @@ const sendAppointmentRequestedNotifications = async (
     })
     .catch((err) => console.error("Confirmation email error:", err));
 
+    await addInAppNotification(
+      user._id,
+      "Appointment Confirmed",
+      `Your appointment with ${doctor.name} for ${slot} has been confirmed.`,
+      {
+        appointmentId: appt._id.toString(),
+        type: "appointment_confirmed",
+      }
+    );
+    
   if (user.pushToken) {
     notificationService
       .sendPushNotification(

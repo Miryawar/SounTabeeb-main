@@ -31,16 +31,14 @@ const userSchema = new mongoose.Schema({
     },
   ],
 
-  notifications: [
-    {
-      title: String,
-      body: String,
-      type: String,
-      data: mongoose.Schema.Types.Mixed,
-      read: { type: Boolean, default: false },
-      createdAt: { type: Date, default: Date.now },
-    },
-  ],
+  notifications: [{
+    title: { type: String },
+    body: { type: String },
+    type: { type: String, default: 'appointment' },
+    data: { type: mongoose.Schema.Types.Mixed },
+    read: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now }
+  }],
 
   role: { type: String, enum: ["user", "doctor", "admin"], default: "user" },
   doctor: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor" },

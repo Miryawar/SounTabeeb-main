@@ -6,7 +6,7 @@ const expo = new Expo();
 const emailUser = process.env.EMAIL_USER || "noreply@sountabeeb.com";
 const emailPassword = process.env.EMAIL_PASSWORD || "";
 const emailHost = process.env.EMAIL_HOST || "smtp.gmail.com";
-const emailPort = process.env.EMAIL_PORT || 587;
+const emailPort = Number(process.env.EMAIL_PORT) || 587;
 
 const transporter = nodemailer.createTransport({
   host: emailHost,
@@ -16,8 +16,12 @@ const transporter = nodemailer.createTransport({
     user: emailUser,
     pass: emailPassword,
   },
+  // --- NEW: Add timeout buffers to prevent random ETIMEDOUT drops ---
+  connectionTimeout: 10000, // Wait 10 seconds before giving up
+  greetingTimeout: 5000,
+  socketTimeout: 20000,
+  pool: true // Use pooled connections for better reliability
 });
-
 /**
  * Send push notification via Expo
  * @param {String} pushToken - User's expo push token

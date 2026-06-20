@@ -11,74 +11,43 @@ export default function Profile() {
   const hasProfileImage = !!profileImage || !!user?.profilePicture;
 
   return (
-    <SafeAreaView style={{ padding: 16 }}>
-      <View>
-        <Text className=" text-gray-800 text-3xl font-bold mb-4">
-          My Profile
-        </Text>
+    // 1. ADDED flex: 1 SO IT TAKES FULL HEIGHT
+    <SafeAreaView style={{ flex: 1 }}>
+      {/* 2. MOVED PADDING HERE AND ADDED paddingBottom */}
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        <View>
+          <Text className=" text-gray-800 text-3xl font-bold mb-4">
+            My Profile
+          </Text>
 
-        <View className="flex flex-row items-center gap-4 bg-[#fff] px-4 py-8 rounded-lg">
-          {hasProfileImage && !isPatient ? (
-            <Image
-              source={{ uri: profileImage || user?.profilePicture }}
-              className="w-32 h-32 rounded-full"
-              resizeMode="contain"
-            />
-          ) : (
-            <View className="w-32 h-32 rounded-full bg-gray-200 items-center justify-center">
-              <Ionicons name="person" size={64} color="#6b7280" />
-            </View>
-          )}
-
-          <View className="flex-1">
-            <Text className="text-gray-700 text-2xl mb-4 font-bold">
-              {user?.name || userName || "User"}
-            </Text>
-            <Text className="text-medium font-bold text-gray-600 mb-2">
-              {user?.email || "No email"}
-            </Text>
-            <Text className="text-lg font-bold text-gray-600 mb-2">
-              {user?.phone || "No phone"}
-            </Text>
-
-            {/* {!isPatient && (
-              <View className="mt-3 flex-row flex-wrap gap-2">
-                <TouchableOpacity
-                  onPress={pickImage}
-                  disabled={uploading}
-                  className="bg-blue-500 px-4 py-2 rounded-lg"
-                >
-                  {uploading ? (
-                    <ActivityIndicator size="small" color="white" />
-                  ) : (
-                    <Text className="text-white font-semibold">
-                      Upload Profile Picture
-                    </Text>
-                  )}
-                </TouchableOpacity>
-
-                {hasProfileImage && (
-                  <TouchableOpacity
-                    onPress={handleRemoveProfilePicture}
-                    disabled={uploading}
-                    className="bg-red-500 px-4 py-2 rounded-lg"
-                  >
-                    {uploading ? (
-                      <ActivityIndicator size="small" color="white" />
-                    ) : (
-                      <Text className="text-white font-semibold">
-                        Delete Profile Picture
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-                )}
+          <View className="flex flex-row items-center gap-4 bg-[#fff] px-4 py-8 rounded-lg">
+            {hasProfileImage && !isPatient ? (
+              <Image
+                source={{ uri: profileImage || user?.profilePicture }}
+                className="w-32 h-32 rounded-full"
+                resizeMode="contain"
+              />
+            ) : (
+              <View className="w-32 h-32 rounded-full bg-gray-200 items-center justify-center">
+                <Ionicons name="person" size={64} color="#6b7280" />
               </View>
-            )} */}
+            )}
+
+            <View className="flex-1">
+              <Text className="text-gray-700 text-2xl mb-4 font-bold">
+                {user?.name || userName || "User"}
+              </Text>
+              <Text className="text-medium font-bold text-gray-600 mb-2">
+                {user?.email || "No email"}
+              </Text>
+              <Text className="text-lg font-bold text-gray-600 mb-2">
+                {user?.phone || "No phone"}
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      <ScrollView>
+        {/* 3. REMOVED THE NESTED SCROLLVIEW HERE */}
         <View className="mb-4 py-8">
           <TouchableOpacity
             onPress={() => router.push("/profile-details")}
@@ -189,17 +158,19 @@ export default function Profile() {
             ></Ionicons>
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity
+          onPress={async () => {
+            await logout();
+            router.replace("/(auth)/sign-in");
+          }}
+          className="flex flex-row items-center gap-3 justify-center bg-red-100 px-4 py-2 rounded-lg"
+        >
+          <Ionicons name="log-out-outline" size={24} color={"red"}></Ionicons>
+          <Text className="text-red-600 text-xl font-bold">Logout</Text>
+        </TouchableOpacity>
+      {/* 4. FIXED THE CLOSING TAGS */}
       </ScrollView>
-      <TouchableOpacity
-        onPress={async () => {
-          await logout();
-          router.replace("/(auth)/sign-in");
-        }}
-        className="flex flex-row items-center gap-3 justify-center bg-red-100 px-4 py-2 rounded-lg"
-      >
-        <Ionicons name="log-out-outline" size={24} color={"red"}></Ionicons>
-        <Text className="text-red-600 text-xl font-bold">Logout</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
