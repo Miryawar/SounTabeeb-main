@@ -95,6 +95,7 @@ export default function DateFormat({
     const schedule = getWorkingHoursForDate(date, doctor.workingHours || []);
     return Boolean(schedule && schedule.active);
   };
+
   const [isSelectedIndex, setIsSelectedIndex] = useState(() => {
     const firstAvailable = dates.findIndex(isDateSelectable);
     return firstAvailable >= 0 ? firstAvailable : 0;
@@ -104,7 +105,6 @@ export default function DateFormat({
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
 
   const selectedDate = new Date(dates[isSelectedIndex]);
-  
   const selectedDateStr = selectedDate.toISOString().split("T")[0];
 
   useEffect(() => {
@@ -162,11 +162,12 @@ export default function DateFormat({
     );
   }
 
- const times = getAvailableTimeSlots(
+  const times = getAvailableTimeSlots(
     selectedDate,
     doctor?.workingHours,
     currentTimes,
   ).filter((time) => !bookedSlots.includes(time));
+
   return (
     <ScrollView
       className="flex-1"
@@ -175,21 +176,19 @@ export default function DateFormat({
     >
       <Text className="text-xl font-bold text-gray-800">Choose Date</Text>
       <View className="flex flex-row items-center justify-between my-4">
-
-          <Ionicons name="chevron-back" size={24} color={"gray"}></Ionicons>
-        
+        <Ionicons name="chevron-back" size={24} color={"gray"}></Ionicons>
         <Text className="text-lg font-bold text-gray-600">
-        {dates[isSelectedIndex].toLocaleDateString("en-US", {
+          {dates[isSelectedIndex].toLocaleDateString("en-US", {
             day: "numeric",
             month: "long",
             year: "numeric",
           })}
         </Text>
-      <Ionicons name="chevron-forward" size={24} color={"gray"}></Ionicons>
+        <Ionicons name="chevron-forward" size={24} color={"gray"}></Ionicons>
       </View>
 
       <View className="flex-row flex-wrap gap-3">
-      {dates.map((items, index) => (
+        {dates.map((items, index) => (
           <TouchableOpacity
             key={index}
             onPress={() => isDateSelectable(items) && setIsSelectedIndex(index)}
@@ -253,7 +252,7 @@ export default function DateFormat({
           </Text>
           <View className="flex flex-row items-center gap-4">
             <Text className="text-lg font-bold text-green-600 mt-1">
-           {dates[isSelectedIndex].toLocaleDateString("en-IN", {
+              {dates[isSelectedIndex].toLocaleDateString("en-IN", {
                 day: "numeric",
                 month: "long",
                 year: "numeric",
@@ -269,7 +268,7 @@ export default function DateFormat({
         onPress={async () => {
           if (!finalDoctorId) return Alert.alert("Missing doctor id");
           if (!selectedTime) return Alert.alert("Please select a time");
-            const dateObj = new Date(dates[isSelectedIndex]);
+          const dateObj = new Date(dates[isSelectedIndex]);
           const [hourStr, minuteStr] = selectedTime.split(":");
           dateObj.setHours(Number(hourStr), Number(minuteStr), 0, 0);
           try {
