@@ -57,7 +57,7 @@ export default function SignUp() {
       if (result.pendingId) {
         Alert.alert(
           "Verify your account",
-          "A verification code was sent. Please confirm your email or phone to finish registration.",
+          "A verification code have been sent. Please confirm your email to finish registration.",
         );
         router.replace(
           `/verify?pendingId=${result.pendingId}&email=${encodeURIComponent(email)}`,

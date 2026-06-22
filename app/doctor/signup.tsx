@@ -133,14 +133,24 @@ export default function DoctorSignUp() {
                 style={{ width: 240, height: 200 }}
               />
             </LinearGradient>
-
-            <Text className="text-4xl font-bold text-gray-800">Doctor</Text>
-            <Text className="text-3xl font-bold text-blue-600">Sign Up</Text>
-            <Text className="text-center text-gray-500 mt-2 mb-6">
+    
+              <View className="flex flex-row gap-3 items-center justify-center mt-8 mb-2">
+                <Text className="text-gray-800 font-bold text-4xl">Create</Text>
+                <Text className="text-blue-600 font-bold text-4xl">
+                  Account
+                </Text>
+              </View>
+              <Text className="text-gray-600 text-lg font-semibold  text-center">
               Create your professional account and start connecting with
               patients.
-            </Text>
+              </Text>
 
+              <View className="flex-row items-center justify-center gap-2 px-2 m-4">
+                <View className="flex-1 h-[2px] bg-blue-600" />
+                <Ionicons name="heart" size={24} color={"#2563EB"} />
+                <View className="flex-1 h-[2px] bg-blue-600" />
+              </View>
+          
             <View className="w-full space-y-4">
               {/* Name */}
               <View>
@@ -150,7 +160,7 @@ export default function DoctorSignUp() {
                 <TextInput
                   value={formData.name}
                   onChangeText={(val) => handleChange("name", val)}
-                  placeholder="Dr. John Doe"
+                  placeholder="Dr. John"
                   className="border border-gray-300 rounded-2xl px-4 py-3"
                 />
               </View>
@@ -295,7 +305,7 @@ export default function DoctorSignUp() {
               >
                 <Ionicons name="person-add" size={22} color="#fff" />
                 <Text className="ml-3 text-white text-lg font-semibold">
-                  {loading ? "Creating Account..." : "Create Account"}
+                  {loading ?  "Signing Up..." : "Sign Up"}
                 </Text>
               </TouchableOpacity>
 

@@ -18,14 +18,17 @@ import { validatePassword } from "@/utils/validation";
 
 export default function ResetPassword() {
   const router = useRouter();
-  // const { token } = useLocalSearchParams();
   const { email, returnTo } = useLocalSearchParams();
+  
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Added state for toggling password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const handleReset = async () => {
-    // if (!token) return Alert.alert("Invalid reset link", "Missing token.");
     if (!email) return Alert.alert("Error", "Email missing.");
     if (password !== confirmPassword)
       return Alert.alert("Passwords do not match");
@@ -35,10 +38,6 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
-      // const res = await apiPost("/api/auth/reset-password", {
-      //   token,
-      //   password,
-      // });
       const res = await apiPost("/api/auth/reset-password", {
         email,
         password,
@@ -47,8 +46,8 @@ export default function ResetPassword() {
       if (!res.ok) throw new Error(data.message || "Reset failed");
 
       Alert.alert(
-        "Password reset",
-        "You can now sign in with your new password.",
+        "Password reset successfully",
+        "Now sign in with your new password.",
       );
 
       router.replace(
@@ -82,36 +81,57 @@ export default function ResetPassword() {
             </Text>
 
             <View className="w-full space-y-4">
+              
+              {/* New Password Input */}
               <View>
                 <Text className="text-gray-700 font-semibold mb-2">
                   New Password
                 </Text>
-                <TextInput
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="New password"
-                  secureTextEntry
-                  className="border border-gray-300 rounded-2xl px-4 py-3"
-                />
+                <View className="flex-row items-center border border-gray-300 rounded-2xl px-4">
+                  <TextInput
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="New password"
+                    secureTextEntry={!showPassword}
+                    className="flex-1 py-3"
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    <Ionicons 
+                      name={showPassword ? "eye" : "eye-off"} 
+                      size={24} 
+                      color="#9CA3AF" 
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
 
+              {/* Confirm Password Input */}
               <View>
                 <Text className="text-gray-700 font-semibold mb-2">
                   Confirm Password
                 </Text>
-                <TextInput
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  placeholder="Confirm password"
-                  secureTextEntry
-                  className="border border-gray-300 rounded-2xl px-4 py-3"
-                />
+                <View className="flex-row items-center border border-gray-300 rounded-2xl px-4">
+                  <TextInput
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="Confirm password"
+                    secureTextEntry={!showConfirmPassword}
+                    className="flex-1 py-3"
+                  />
+                  <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    <Ionicons 
+                      name={showConfirmPassword ? "eye" : "eye-off"} 
+                      size={24} 
+                      color="#9CA3AF" 
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <TouchableOpacity
                 onPress={handleReset}
                 disabled={loading}
-                className="flex-row items-center justify-center rounded-2xl bg-blue-600 py-4 px-6"
+                className="flex-row items-center justify-center rounded-2xl bg-blue-600 py-4 px-6 mt-2"
               >
                 <Ionicons name="refresh" size={22} color="#fff" />
                 <Text className="ml-3 text-white text-lg font-semibold">

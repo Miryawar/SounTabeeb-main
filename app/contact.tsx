@@ -39,32 +39,6 @@ export default function Contact() {
       await Linking.openURL(fallbackUrl);
     }
   };
-  // const [name, setName] = useState("");
-  // const [email, setEmail] = useState("");
-  // const [subject, setSubject] = useState("");
-  // const [message, setMessage] = useState("");
-  // // SEND FUNCTION
-  // const sendMessage = async () => {
-  //   try {
-  //     await emailjs.send(
-  //       "service_xz8o6zj",
-  //       "template_vnux19k",
-
-  //       {
-  //         user_name: name,
-  //         user_email: email,
-  //         subject: subject,
-  //         message: message,
-  //       },
-  //       "rxQf7E1rI8Fa33AbP",
-  //     );
-
-  //     alert("Message Sent Successfully!");
-  //   } catch (error) {
-  //     console.log(error);
-  //     alert("Failed to send message");
-  //   }
-  // };
 
   return (
     <SafeAreaView className="flex-1">
@@ -190,61 +164,7 @@ export default function Contact() {
           <Ionicons name="arrow-forward" size={24} color={"gray"} />
         </TouchableOpacity>
 
-        {/* <Text className="text-blue-600 font-bold text-xl m-4">
-          Send us a Message
-        </Text>
-        <View className="flex flex-row items-center gap-4">
-          <View className=" flex-1 flex flex-row items-center bg-[#fff] rounded-lg px-4 py-2 gap-2 ">
-            <Ionicons name="person-outline" size={24} color={"gray"} />
-            <TextInput
-              placeholder="Your Name"
-              value={name}
-              onChangeText={setName}
-              className="border-gray-600 flex-1 min-w-0 "
-            ></TextInput>
-          </View>
-
-          <View className="flex-1 flex-row items-center bg-[#fff] rounded-lg px-4 py-2 gap-2">
-            <Ionicons name="mail-outline" size={24} color={"gray"} />
-            <TextInput
-              placeholder="Your Email"
-              value={email}
-              onChangeText={setEmail}
-              //  placeholderTextColor={"red"}
-              className=" border-gray-600 min-w-0 flex-1 "
-            ></TextInput>
-          </View>
-        </View>
-        <View className="flex-1 flex-row items-center bg-[#fff] rounded-lg px-4 py-2 gap-2 mt-4">
-          <Ionicons name="moon" size={24} color={"gray"} />
-          <TextInput
-            placeholder="Subject"
-            value={subject}
-            onChangeText={setSubject}
-            className=" border-gray-600 min-w-0 flex-1 "
-          ></TextInput>
-        </View>
-        <View className="flex-1 flex-row items-center bg-[#fff] rounded-lg px-4 py-2 gap-2 mt-4">
-          {!isFocused && <Ionicons name="person" size={24} color={"gray"} />}
-
-          <TextInput
-            placeholder="Your Message"
-            value={message}
-            onChangeText={setMessage}
-            multiline
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            className=" border-gray-600 min-w-0 flex-1 h-32 "
-          ></TextInput>
-        </View>
-        <TouchableOpacity
-          onPress={sendMessage}
-          className=" flex flex-row items-center justify-center gap-4 bg-blue-600 rounded-xl py-3 my-6"
-        >
-          <Ionicons name="send" size={16} color={"#fff"}></Ionicons>
-          <Text className="text-white font-bold text-lg">Send Message</Text>
-        </TouchableOpacity> */}
-
+        
         {/* <Footer></Footer> */}
       </ScrollView>
     </SafeAreaView>

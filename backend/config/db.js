@@ -5,9 +5,10 @@ const connectDB = async (uri) => {
   const connectionOptions = {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 10000,
-    socketTimeoutMS: 45000,
+    serverSelectionTimeoutMS: 20000,
+    socketTimeoutMS: 50000,
     family: 4,
+    keepAlive: true, // Added this line to prevent idle network drops
   };
 
   try {

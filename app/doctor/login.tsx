@@ -59,10 +59,12 @@ export default function DoctorLogin() {
               />
             </LinearGradient>
 
-            <Text className="text-4xl font-bold text-gray-800">Doctor</Text>
-            <Text className="text-3xl font-bold text-blue-600">Login</Text>
+            <View className="flex flex-row gap-4 items-center justify-center mt-5 mb-2">
+                <Text className="text-gray-800 font-bold text-4xl">Welcome</Text>
+                <Text className="text-blue-600 font-bold text-4xl">Back</Text>
+              </View>
             <Text className="text-center text-gray-500 mt-3 mb-6">
-              Enter your credentials to access the dashboard.
+              Enter your credentials to access your dashboard.
             </Text>
 
             <View className="w-full space-y-4">

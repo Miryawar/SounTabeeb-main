@@ -17,8 +17,8 @@ const transporter = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false,
   },
-  connectionTimeout: Number(process.env.EMAIL_CONNECTION_TIMEOUT || 10000),
-  greetingTimeout: Number(process.env.EMAIL_GREETING_TIMEOUT || 5000),
+  connectionTimeout: Number(process.env.EMAIL_CONNECTION_TIMEOUT || 20000),
+  greetingTimeout: Number(process.env.EMAIL_GREETING_TIMEOUT || 20000),
 });
 transporter.verify((error, success) => {
   if (error) {
@@ -28,23 +28,25 @@ transporter.verify((error, success) => {
   }
 });
 
-exports.sendPasswordResetEmail = async (email, resetToken, baseUrl) => {
+exports.sendPasswordResetEmail = async (email, otp) => {
   try {
-    const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
     const mailOptions = {
       from: emailUser,
       to: email,
-      subject: "Password Reset - Soun Tabeeb",
+      subject: "Password Reset Request - Soun Tabeeb",
       html: `
-        <h2>Password Reset Request</h2>
-        <p>You have requested a password reset for your Soun Tabeeb account.</p>
-        <p>Click the link below to reset your password (valid for 1 hour):</p>
-        <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; background-color: #2563EB; color: white; text-decoration: none; border-radius: 5px;">
-          Reset Password
-        </a>
-        <p>Or copy and paste this link in your browser:</p>
-        <p>${resetUrl}</p>
-        <p>If you didn't request this, please ignore this email.</p>
+        <div style="font-family: Arial, sans-serif; color: #333;">
+          <h2>Password Reset Request</h2>
+          <p>You have requested a password reset for your Soun Tabeeb account.</p>
+          <p>Your password reset code is:</p>
+          <h1 style="letter-spacing: 5px; font-size: 32px; color: #2E86DE;">${otp}</h1>
+          <p style="color: #904741; font-weight: bold; margin-top: 15px;">
+            ⚠️ This code is valid for 10 minutes.
+          </p>
+          <p style="color: #666; font-size: 14px; margin-top: 20px;">
+            If you didn't request this, please safely ignore this email.
+          </p>
+        </div>
       `,
     };
 
@@ -65,8 +67,11 @@ exports.sendVerificationEmail = async (email, verificationCode) => {
       html: `
         <h2>Email Verification</h2>
         <p>Your verification code is:</p>
-        <h1 style="letter-spacing: 5px; font-size: 32px;">${verificationCode}</h1>
-        <p>This code is valid for 24 hours.</p>
+        <h1 style="letter-spacing: 5px; font-size: 32px; color: #2E86DE;">${verificationCode}</h1>
+        <p style="color: #953f39; font-weight: bold; margin-top: 15px;">
+        ⚠️ This code is valid for 10 minutes.
+      </p>
+      
       `,
     };
 

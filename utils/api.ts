@@ -3,7 +3,6 @@ import Constants from "expo-constants";
 
 const expoApiBase = Constants.expoConfig?.extra?.API_BASE;
 export const API_BASE = expoApiBase || "http://172.28.37.117:5000";
-
 async function getToken(key = "token") {
   return await AsyncStorage.getItem(key);
 }

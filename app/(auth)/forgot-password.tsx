@@ -33,11 +33,6 @@ export default function ForgotPassword() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Request failed");
 
-      // setSent(true);
-      // Alert.alert(
-      //   "Password reset email sent",
-      //   "Check your email for reset instructions.",
-      // );
       setSent(true);
 
       Alert.alert("OTP Sent", "Check your email for the OTP", [
@@ -54,7 +49,7 @@ export default function ForgotPassword() {
         },
       ]);
     } catch (err: any) {
-      Alert.alert(err.message || "Failed to send reset link");
+      Alert.alert(err.message || "Failed to send reset OTP");
     } finally {
       setLoading(false);
     }
